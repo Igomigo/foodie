@@ -7,7 +7,8 @@ export class Db {
     constructor(private logger: Logger) {}
 
     public async connect() {
-        const uri: any = process.env.MONGO_URI;
+        const uri: any = process.env.MONGODB_URI;
+
         if (!uri) {
             this.logger.error("MONGO_URI is not defined", this);
             throw new Error("MONGO_URI is not defined");
