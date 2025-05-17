@@ -13,7 +13,7 @@ export class BaseController {
 
     public async greet(req: Request, res: Response) {
         const message = await this.baseService.greet();
-        this.logger.log(message);
+        this.logger.log(message, this);
         return response(res, 200, {success: true, message: message});
     }
 }

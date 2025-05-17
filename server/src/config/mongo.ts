@@ -9,15 +9,15 @@ export class Db {
     public async connect() {
         const uri: any = process.env.MONGO_URI;
         if (!uri) {
-            this.logger.error("[mongoDB] MONGO_URI is not defined");
+            this.logger.error("MONGO_URI is not defined", this);
             throw new Error("MONGO_URI is not defined");
         }
 
         try {
             await mongoose.connect(uri);
-            this.logger.log("[mongoDB] connected to database");
+            this.logger.log("connected to database", this);
         } catch (error) {
-            this.logger.error("[mongoDB] failed to connect to database");
+            this.logger.error("failed to connect to database", this);
             process.exit(1);
         }
     }
@@ -25,9 +25,9 @@ export class Db {
     public async disconnect() {
         try {
             await mongoose.disconnect();
-            this.logger.log("[mongoDB] disconnected from database");
+            this.logger.log("disconnected from database", this);
         } catch (error) {
-            this.logger.error("[mongoDB] failed to disconnect from database");
+            this.logger.error("failed to disconnect from database", this);
             process.exit(1);
         }
     }

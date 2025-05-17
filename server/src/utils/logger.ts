@@ -4,19 +4,19 @@ import { Service } from "typedi";
 export class Logger {
     constructor() {}
 
-    public log(message: string) {
-        console.log(message);
+    public log(message: string, context: any) {
+        console.log(`[${context.constructor.name}] ${message}`);
     }
 
-    public error(message: string) {
-        console.error(message);
+    public error(message: string, context: any) {
+        console.error(`[${context.constructor.name}] ${message}`);
     }
 
-    public warn(message: string) {
-        console.warn(message);
+    public warn(message: string, context: any) {
+        console.warn(`[${context.constructor.name}] ${message}`);
     }
 
-    public info(message: string) {
-        console.info(message);
+    public info(message: string, context: any) {
+        console.info(`[${context.constructor.name}] ${message}`);
     }
 }
