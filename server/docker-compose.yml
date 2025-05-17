@@ -32,7 +32,7 @@ services:
 
   server:
     build: 
-      context: ./server
+      context: .
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
@@ -43,7 +43,7 @@ services:
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     volumes:
-      - ./server:/app
+      - .:/app
       - /app/node_modules
     depends_on:
       mongodb:
