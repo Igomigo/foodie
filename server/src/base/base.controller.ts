@@ -16,4 +16,16 @@ export class BaseController {
         this.logger.log(message, this);
         return response(res, 200, {success: true, message: message});
     }
+
+    public async setUser(req: Request, res: Response) {
+        const user = req.body;
+        const result = await this.baseService.setUser(user);
+        return response(res, 201, {success: true, message: "User set successfully", data: result});
+    }
+
+    public async getUser(req: Request, res: Response) {
+        const key = req.params.key;
+        const result = await this.baseService.getUser(key);
+        return response(res, 200, {success: true, message: "User fetched successfully", data: result});
+    }
 }
