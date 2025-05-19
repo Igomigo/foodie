@@ -7,6 +7,7 @@ import { Db } from "./config/mongo";
 import cors from 'cors';
 import helmet from "helmet";
 import cookieParser from 'cookie-parser';
+import { AuthRoute } from "./auth/auth.route";
 
 @Service()
 export class App {
@@ -16,7 +17,8 @@ export class App {
 
     constructor (
         private readonly baseRoute: BaseRoute,
-        private readonly db: Db
+        private readonly db: Db,
+        private readonly authRoute: AuthRoute
     ) {
         this.app = express();
         this.connectToDatabase();
@@ -40,6 +42,7 @@ export class App {
 
     private initializeRoutes() {
         this.app.use(`/${this.apiVersion}`, this.baseRoute.router);
+        this.app.use(`/${this.apiVersion}/auth`, this.authRoute.router);
     }
 
     public start() {

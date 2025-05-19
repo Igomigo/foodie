@@ -19,10 +19,10 @@ class Location {
     }
 })
 class User {
-    _id!: mongoose.Types.ObjectId;
+    _id?: mongoose.Types.ObjectId;
 
     @Prop({ required: true, unique: true })
-    username!: string;
+    username?: string;
 
     @Prop({ required: true, unique: true })
     email!: string;
@@ -30,8 +30,8 @@ class User {
     @Prop({ required: true })
     password!: string;
 
-    @Prop({ type: () => Location,required: true })
-    location!: Location;
+    @Prop({ type: () => Location, required: true })
+    location?: Location;
 
     @Prop({ type: [mongoose.Types.ObjectId], ref: "Vendor", default: [] })
     favourites?: mongoose.Types.ObjectId[];
