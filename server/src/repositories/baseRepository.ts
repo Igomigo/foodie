@@ -1,11 +1,9 @@
-import { Service } from "typedi";
 import { IBaseRepository } from "./baseRepositoryInterface";
 import { Types } from "mongoose";
 import { ReturnModelType } from "@typegoose/typegoose";
 
-@Service()
 export class BaseRepository<T> implements IBaseRepository<T> {
-    private readonly model: ReturnModelType<any>;
+    public readonly model: ReturnModelType<any>;
 
     constructor(
         model: ReturnModelType<any>,
