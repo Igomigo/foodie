@@ -1,15 +1,10 @@
 import { getModelForClass, ModelOptions, Prop } from "@typegoose/typegoose";
 import mongoose from "mongoose";
 
-class Location {
-    @Prop({ required: true })
-    country!: string;
-
-    @Prop({ required: true })
-    state!: string;
-
-    @Prop({ required: true })
-    city!: string;
+interface Location {
+    country: string;
+    state: string;
+    city: string;
 }
 
 @ModelOptions({

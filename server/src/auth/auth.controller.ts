@@ -12,11 +12,12 @@ export class AuthController {
 
     public async signup(req: Request, res: Response) {
         const data = req.body;
-        const user = await this.signupService.handler(data);
-        return response(res, 201, {
-            success: true,
-            message: 'user created successfully',
-            data: user
+        const result = await this.signupService.signup(data);
+        return response(res, result.statusCode, {
+            success: result.statusCode === 201 ? true : false,
+            message: result.message,
+            data: result.data ? result.data : null,
+            errors: result.error ? result.error : null
         });
     }
 }
