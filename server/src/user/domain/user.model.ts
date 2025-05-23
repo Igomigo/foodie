@@ -1,7 +1,7 @@
 import { getModelForClass, ModelOptions, Prop } from "@typegoose/typegoose";
 import mongoose from "mongoose";
 
-interface Location {
+type Location = {
     country: string;
     state: string;
     city: string;
@@ -25,7 +25,7 @@ class User {
     @Prop({ required: true })
     password!: string;
 
-    @Prop({ type: () => Location, required: true })
+    @Prop({ type: Object, required: true })
     location?: Location;
 
     @Prop({ type: [mongoose.Types.ObjectId], ref: "Vendor", default: [] })

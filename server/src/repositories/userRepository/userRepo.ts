@@ -1,5 +1,5 @@
 import { Service } from "typedi";
-import { User, UserModel } from "../../user/user.model";
+import { User, UserModel } from "../../user/domain/user.model";
 import { BaseRepository } from "../baseRepository";
 import { IUserRepository } from "./IuserRepo";
 

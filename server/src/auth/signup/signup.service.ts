@@ -1,15 +1,17 @@
 import { Service } from "typedi";
-import { User } from "../../user/user.model";
+import { User } from "../../user/domain/user.model";
 import { UserRepository } from "../../repositories/userRepository/userRepo";
 import { Logger } from "../../utils/logger";
 import { serviceResponse } from "../../interfaces/serviceResponse";
+import { RedisService } from "../../services/redisService";
 
 @Service()
 export class SignupService {
 
     constructor(
         private readonly userRepo: UserRepository,
-        private readonly logger: Logger
+        private readonly logger: Logger,
+        private readonly redis: RedisService
     ) {}
 
     public async signup(data: User): Promise<serviceResponse<User>> {
@@ -25,6 +27,9 @@ export class SignupService {
 
             // Create new user
             const newUser = await this.userRepo.create(data);
+
+            // Store the new user object in redis
+            await this.redis.set(`user:${newUser._id}`, newUser);
 
             // Return success response
             this.logger.info(`User created successfully: ${newUser.username}`, this.signup.name);

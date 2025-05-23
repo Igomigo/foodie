@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { SignupService } from "./signup/signup.service";
-import { response } from "../interfaces/response";
+import { response } from "../interfaces/apiResponse";
 import { Service } from "typedi";
 
 @Service()

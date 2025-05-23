@@ -1,7 +1,7 @@
 import { Service } from "typedi";
 import { BaseService } from "./base.service";
 import { Request, Response } from "express";
-import { response } from "../interfaces/response";
+import { response } from "../interfaces/apiResponse";
 import { Logger } from "../utils/logger";
 
 @Service()
