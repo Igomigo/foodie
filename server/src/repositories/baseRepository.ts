@@ -1,5 +1,4 @@
 import { IBaseRepository } from "./baseRepositoryInterface";
-import { Types } from "mongoose";
 import { ReturnModelType } from "@typegoose/typegoose";
 
 export class BaseRepository<T> implements IBaseRepository<T> {
@@ -19,7 +18,7 @@ export class BaseRepository<T> implements IBaseRepository<T> {
         return this.model.findOne(query);
     }
 
-    public async findById(id: Types.ObjectId): Promise<T | null> {
+    public async findById(id: string): Promise<T | null> {
         return this.model.findById(id);
     }
 
@@ -27,11 +26,11 @@ export class BaseRepository<T> implements IBaseRepository<T> {
         return this.model.find(query);
     }
 
-    public async update(id: Types.ObjectId, data: Partial<T>): Promise<T | null> {
+    public async update(id: string, data: Partial<T>): Promise<T | null> {
         return this.model.findByIdAndUpdate(id, data, { new: true });
     }
 
-    public async delete(id: Types.ObjectId): Promise<boolean> {
+    public async delete(id: string): Promise<boolean> {
         const result = await this.model.findByIdAndDelete(id);
         return result !== null;
     }

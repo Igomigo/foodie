@@ -22,6 +22,6 @@ export class BaseService {
 
     public async getUser(key: string) {
         const user: any = await this.redis.get(key);
-        return JSON.parse(user);
+        return user;
     }
 }

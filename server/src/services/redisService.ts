@@ -25,7 +25,7 @@ export class RedisService {
     // Get value by key
     public async get<T>(key: string): Promise<T | null> {
         const value = await this.redis.get(key)
-        return value ?JSON.parse(value) : null;
+        return value ? JSON.parse(value) : null;
     }
 
     // Delete key
