@@ -9,6 +9,7 @@ import helmet from "helmet";
 import cookieParser from 'cookie-parser';
 import { AuthRoute } from "./auth/auth.route";
 import { UserRoute } from "./user/user.route";
+import { AIRoute } from "./ai/ai.route";
 
 @Service()
 export class App {
@@ -20,7 +21,8 @@ export class App {
         private readonly baseRoute: BaseRoute,
         private readonly db: Db,
         private readonly authRoute: AuthRoute,
-        private readonly userRoute: UserRoute
+        private readonly userRoute: UserRoute,
+        private readonly aiRoute: AIRoute
     ) {
         this.app = express();
         this.connectToDatabase();
@@ -45,7 +47,8 @@ export class App {
     private initializeRoutes() {
         this.app.use(`/${this.apiVersion}`, this.baseRoute.router);
         this.app.use(`/${this.apiVersion}/auth`, this.authRoute.router);
-        this.app.use(`/${this.apiVersion}/user`, this.userRoute.router);
+        this.app.use(`/${this.apiVersion}/users`, this.userRoute.router);
+        this.app.use(`/${this.apiVersion}/ai`, this.aiRoute.router);
     }
 
     public start() {

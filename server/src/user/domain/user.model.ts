@@ -17,7 +17,7 @@ class User {
     _id?: mongoose.Types.ObjectId;
 
     @Prop({ required: true, unique: true })
-    username?: string;
+    username!: string;
 
     @Prop({ required: true, unique: true })
     email!: string;
@@ -25,7 +25,13 @@ class User {
     @Prop({ required: true })
     password!: string;
 
-    @Prop({ type: Object, required: true })
+    @Prop({ required: false })
+    phoneNumber?: string;
+
+    @Prop({ required: false })
+    profilePicture?: string;
+
+    @Prop({ type: () => Object, required: true })
     location?: Location;
 
     @Prop({ type: [mongoose.Types.ObjectId], ref: "Vendor", default: [] })
