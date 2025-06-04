@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import PhoneInput from "react-phone-input-2"
 import "react-phone-input-2/lib/style.css"
+import Link from "next/link"
 
 // Create form data validation schema
 const signupSchema = z
@@ -40,7 +41,7 @@ export default function Page() {
   // Handle form submission
   const onSubmit = async (data: SignupFormData) => {
     try {
-      console.log(data)
+      
     } catch (error) {
       console.error("signup failed", error)
     }
@@ -212,6 +213,9 @@ export default function Page() {
           >
             Sign Up
           </button>
+          <div className="text-center">
+            <p className="text-sm">Already have an account? <Link href={"/auth/login"} className="text-orange-500 font-semibold hover:text-orange-600">sign in</Link></p>
+          </div>
         </form>
       </div>
     </div>
