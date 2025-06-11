@@ -23,7 +23,7 @@ const signupSchema = z
     path: ["confirmPassword"],
   })
 
-type SignupFormData = z.infer<typeof signupSchema>
+export type SignupFormData = z.infer<typeof signupSchema>
 
 export default function Page() {
   // Initialize form
