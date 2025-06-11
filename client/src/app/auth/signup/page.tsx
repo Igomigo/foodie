@@ -5,6 +5,10 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import PhoneInput from "react-phone-input-2"
 import "react-phone-input-2/lib/style.css"
 import Link from "next/link"
+import { registerUser } from "@/sevices/auth.service"
+import { useState } from "react"
+import toast from "react-hot-toast"
+import { useRouter } from "next/navigation"
 
 // Create form data validation schema
 const signupSchema = z
@@ -25,7 +29,13 @@ const signupSchema = z
 
 export type SignupFormData = z.infer<typeof signupSchema>
 
-export default function Page() {
+export default function SignupPage() {
+  // State Management
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Hooks
+  const router = useRouter();
+
   // Initialize form
   const {
     register,
@@ -40,10 +50,28 @@ export default function Page() {
 
   // Handle form submission
   const onSubmit = async (data: SignupFormData) => {
+    setIsLoading(true);
     try {
-      
-    } catch (error) {
-      console.error("signup failed", error)
+      // Transform data to match the expected format
+      const transformedData = {
+        ...data,
+        location: {
+          country: data.country,
+          state: data.state,
+          city: data.city
+        }
+      };
+
+      // Register user
+      const response = await registerUser(transformedData);
+      toast.success(response.message);
+      console.log(response.message);
+      router.push("/auth/login");
+    } catch (error: any) {
+      toast.error(error.response.data.message);
+      console.error("signup failed", error.response.data.message);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -210,8 +238,9 @@ export default function Page() {
           <button
             type="submit"
             className="w-full py-3 px-4 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors"
+            disabled={isLoading}
           >
-            Sign Up
+            {isLoading ? "Signing Up..." : "Sign Up"}
           </button>
           <div className="text-center">
             <p className="text-sm">Already have an account? <Link href={"/auth/login"} className="text-orange-500 font-semibold hover:text-orange-600">sign in</Link></p>
