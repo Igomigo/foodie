@@ -32,7 +32,7 @@ class User {
     profilePicture?: string;
 
     @Prop({ type: () => Object, required: true })
-    location?: Location;
+    location!: Location;
 
     @Prop({ type: [mongoose.Types.ObjectId], ref: "Vendor", default: [] })
     favourites?: mongoose.Types.ObjectId[];

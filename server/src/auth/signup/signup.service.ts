@@ -25,8 +25,21 @@ export class SignupService {
                 }
             }
 
+            // Prepare data for user creation
+            const userData = {
+                username: data.username,
+                email: data.email,
+                password: data.password,
+                phoneNumber: data.phoneNumber,
+                location: {
+                    country: data.location.country,
+                    state: data.location.state,
+                    city: data.location.city
+                }
+            }
+
             // Create new user
-            const newUser = await this.userRepo.create(data);
+            const newUser = await this.userRepo.create(userData);
 
             // Store the new user object in redis
             await this.redis.set(`user:${newUser._id}`, newUser);
@@ -43,7 +56,7 @@ export class SignupService {
             this.logger.error(error.message, this.signup.name);
             return {
                 "statusCode": 500,
-                "message": "Internal server error",
+                "message": "Failed to create user",
                 "error": error.message
             }
         }
