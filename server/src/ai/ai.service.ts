@@ -9,6 +9,11 @@ export class AIService {
         this.ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GEMINI_API_KEY });
     }
 
+    /**
+     * Generate text using Google GenAI
+     * @param prompt - The prompt to generate text from
+     * @returns The generated text
+     */
     public async generateText(prompt: string): Promise<string> {
         try {
             const response = await this.ai.models.generateContent({
@@ -17,7 +22,8 @@ export class AIService {
             });
 
             return response.text || "";
-        } catch (error) {
+        } catch (error: any) {
+            console.error(error.message);
             throw new Error("Failed to generate text");
         }
     }
