@@ -4,6 +4,7 @@ import { UserRepository } from "../../repositories/userRepository/userRepo";
 import { Logger } from "../../utils/logger";
 import { serviceResponse } from "../../interfaces/serviceResponse";
 import { RedisService } from "../../services/redisService";
+import * as bcrypt from "bcrypt";
 
 @Service()
 export class SignupService {
@@ -25,21 +26,14 @@ export class SignupService {
                 }
             }
 
-            // Prepare data for user creation
-            const userData = {
-                username: data.username,
-                email: data.email,
-                password: data.password,
-                phoneNumber: data.phoneNumber,
-                location: {
-                    country: data.location.country,
-                    state: data.location.state,
-                    city: data.location.city
-                }
-            }
+            // Hash password
+            const hashedPassword = await this.hashPassword(data.password);
 
             // Create new user
-            const newUser = await this.userRepo.create(userData);
+            const newUser = await this.userRepo.create({
+                ...data,
+                password: hashedPassword
+            });
 
             // Store the new user object in redis
             await this.redis.set(`user:${newUser._id}`, newUser);
@@ -48,7 +42,7 @@ export class SignupService {
             this.logger.info(`User created successfully: ${newUser.username}`, this.signup.name);
             return {
                 "statusCode": 201,
-                "message": "User created successfully",
+                "message": "User account created successfully",
                 "data": newUser
             }
 
@@ -56,9 +50,13 @@ export class SignupService {
             this.logger.error(error.message, this.signup.name);
             return {
                 "statusCode": 500,
-                "message": "Failed to create user",
+                "message": "Failed to create user account",
                 "error": error.message
             }
         }
+    }
+
+    private async hashPassword(password: string): Promise<string> {
+        return await bcrypt.hash(password, 10);
     }
 }
