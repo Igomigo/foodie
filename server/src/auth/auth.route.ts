@@ -3,6 +3,7 @@ import { Service } from "typedi";
 import { signUpSchema } from "./signup/signup.dto";
 import { validate } from "../validators/base.validator";
 import { AuthController } from "./auth.controller";
+import { SignInSchema } from "./signIn/signIn.dto";
 
 @Service()
 export class AuthRoute {
@@ -18,6 +19,11 @@ export class AuthRoute {
         this.router.post('/signup',
             validate(signUpSchema),
             (req: Request, res: Response) => this.authController.signup(req, res)
+        );
+
+        this.router.post('/login',
+            validate(SignInSchema),
+            (req: Request, res: Response) => this.authController.signIn(req, res)
         );
     }
 }

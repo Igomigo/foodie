@@ -2,7 +2,6 @@ import { Service } from "typedi";
 import { UserRepository } from "../../repositories/userRepository/userRepo";
 import { Logger } from "../../utils/logger";
 import { User } from "../../user/domain/user.model";
-import { serviceResponse } from "../../interfaces/serviceResponse";
 import * as bcrypt from "bcrypt";
 import { JwtService } from "../../utils/jwt";
 
@@ -34,7 +33,7 @@ export class LoginService {
                 };
             }
 
-            // Generate token
+            // Generate tokens
             const accessToken = await this.jwtService.generateAccessToken({ userId: user._id });
             const refreshToken = await this.jwtService.generateRefreshToken({ userId: user._id });
 
