@@ -10,7 +10,6 @@ export const axiosInstance = axios.create({
 
 // Token management functions
 const getAccessToken = () => localStorage.getItem("accessToken");
-const getRefreshToken = () => localStorage.getItem("refreshToken");
 
 const setAuthHeader = (token: string | null) => {
   if (token) {
@@ -43,20 +42,10 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        // Attempt to refresh the token
-        const refreshToken = getRefreshToken();
-        if (!refreshToken) {
-          throw new Error("No refresh token available");
-        }
-
-        const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh-token`,
-          { refreshToken },
-          { withCredentials: true }
-        );
-
+        // The refresh token is automatically sent in the cookie
+        const response = await axiosInstance.post('/auth/refresh-token');
         const { accessToken } = response.data;
-        
+
         // Update the access token
         localStorage.setItem("accessToken", accessToken);
         setAuthHeader(accessToken);
@@ -82,14 +71,13 @@ axiosInstance.interceptors.response.use(
 );
 
 // Auth management functions
-export const loginUser = (accessToken: string, refreshToken: string) => {
+export const loginUser = (accessToken: string) => {
   localStorage.setItem("accessToken", accessToken);
-  localStorage.setItem("refreshToken", refreshToken);
   setAuthHeader(accessToken);
 };
 
 export const logoutUser = () => {
   localStorage.removeItem("accessToken");
-  localStorage.removeItem("refreshToken");
   setAuthHeader(null);
+  // The refresh token cookie will be cleared by the server
 };

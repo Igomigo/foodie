@@ -51,7 +51,7 @@ export default function LoginPage() {
         router.replace("/home");
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.errors || error.response?.data?.message);
+      toast.error(error.response?.data?.errors[0] || error.response?.data?.message);
     } finally {
       setIsLoading(false);
     }

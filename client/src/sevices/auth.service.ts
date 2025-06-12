@@ -1,6 +1,6 @@
 import { LoginFormData } from "@/app/auth/login/page";
 import { SignupFormData } from "@/app/auth/signup/page";
-import { axiosInstance, loginUser, logoutUser } from "@/config/axios.instance";
+import { axiosInstance, loginUser } from "@/config/axios";
 
 /**
  * Register a new user
@@ -20,7 +20,7 @@ export const signUp = async (data: SignupFormData) => {
             }
         };
         const response = await axiosInstance.post('/auth/signup', transformedData);
-        return response.data;
+        return response?.data;
     } catch (error: any) {
         throw error;
     }
@@ -35,8 +35,8 @@ export const signIn = async (data: LoginFormData) => {
     try {
         console.log("Logging in user", data);
         const response = await axiosInstance.post('/auth/login', data);
-        loginUser(response.data.accessToken, response.data.refreshToken);
-        return response.data;
+        loginUser(response?.data?.accessToken);
+        return response?.data;
     } catch (error: any) {
         throw error;
     }

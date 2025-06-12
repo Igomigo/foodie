@@ -1,4 +1,4 @@
-import { logoutUser } from "@/config/axios.instance"
+import { logoutUser } from "@/config/axios"
 import { useRouter } from "next/navigation"
 import toast from "react-hot-toast"
 
