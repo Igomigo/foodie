@@ -40,7 +40,7 @@ export default function LoginPage() {
 
       const response = await signIn(data);
 
-      toast.success(response.data?.message);
+      toast.success(response?.data?.message || "Login successful");
 
       // Check for redirect route
       const redirectRoute = localStorage.getItem('redirectAfterLogin');
@@ -51,7 +51,7 @@ export default function LoginPage() {
         router.replace("/home");
       }
     } catch (error: any) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.errors || error.response?.data?.message);
     } finally {
       setIsLoading(false);
     }

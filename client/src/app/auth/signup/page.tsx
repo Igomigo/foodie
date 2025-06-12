@@ -52,24 +52,16 @@ export default function SignupPage() {
   const onSubmit = async (data: SignupFormData) => {
     setIsLoading(true);
     try {
-      // Transform data to match the expected format
-      const transformedData = {
-        ...data,
-        location: {
-          country: data.country,
-          state: data.state,
-          city: data.city
-        }
-      };
-
       // Register user
       const response = await signUp(data);
-      toast.success(response.message);
-      console.log(response.message);
+
+      toast.success(response?.data?.message || "Signup successful");
+      console.log(response?.data?.message);
+
       router.push("/auth/login");
     } catch (error: any) {
-      toast.error(error.response.data.message);
-      console.error("signup failed", error.response.data.message);
+      toast.error(error.response?.data?.errors || error.response?.data?.message);
+      console.error("signup failed", error.response?.data?.message);
     } finally {
       setIsLoading(false);
     }
