@@ -85,7 +85,7 @@ export default function LandingPage() {
             <div className="relative animate-fade-in-right">
               <div className="relative z-10">
                 <Image
-                  src="/images/african-cuisine-hero.jpg"
+                  src="/images/native-rice-and-stew.jpeg"
                   alt="Delicious African cuisine including jollof rice, amala, and traditional soups"
                   width={600}
                   height={600}

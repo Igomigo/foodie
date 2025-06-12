@@ -6,6 +6,7 @@ import Link from "next/link"
 import { useState } from "react"
 import toast from "react-hot-toast"
 import { useRouter } from "next/navigation"
+import { signIn } from "@/sevices/auth.service"
 
 // Create form data validation schema
 const loginSchema = z
@@ -17,6 +18,9 @@ const loginSchema = z
 export type LoginFormData = z.infer<typeof loginSchema>
 
 export default function LoginPage() {
+  // Hooks
+  const router = useRouter();
+
   // State Management
   const [isLoading, setIsLoading] = useState(false);
 
@@ -31,7 +35,26 @@ export default function LoginPage() {
 
   // Handle form submission
   const onSubmit = async (data: LoginFormData) => {
-    console.log(data);
+    try {
+      setIsLoading(true);
+
+      const response = await signIn(data);
+
+      toast.success(response.data?.message);
+
+      // Check for redirect route
+      const redirectRoute = localStorage.getItem('redirectAfterLogin');
+      if (redirectRoute) {
+        localStorage.removeItem('redirectAfterLogin');
+        router.replace(redirectRoute);
+      } else {
+        router.replace("/home");
+      }
+    } catch (error: any) {
+      toast.error(error.response.data.message);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
