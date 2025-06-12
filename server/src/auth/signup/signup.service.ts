@@ -39,7 +39,7 @@ export class SignupService {
             await this.redis.set(`user:${newUser._id}`, newUser);
 
             // Return success response
-            this.logger.info(`User created successfully: ${newUser.username}`, this.signup.name);
+            this.logger.info(`User created successfully: ${newUser.username}`, "SignupService");
             return {
                 "statusCode": 201,
                 "message": "User account created successfully",
@@ -47,7 +47,7 @@ export class SignupService {
             }
 
         } catch (error: any) {
-            this.logger.error(error.message, this.signup.name);
+            this.logger.error(error.message, "SignupService");
             return {
                 "statusCode": 500,
                 "message": "Failed to create user account",
