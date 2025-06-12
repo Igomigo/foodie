@@ -35,8 +35,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen px-4 py-12 sm:px-6 lg:px-8">
-      <div className="max-w-lg mx-auto shadow-lg border border-gray-100 rounded-lg p-6 sm:p-8">
+    <div className="min-h-screen px-4 py-12 sm:px-6 lg:px-8 flex items-center">
+      <div className="flex-1 max-w-lg mx-auto shadow-lg border border-gray-100 rounded-lg p-6 sm:p-8">
         <div className="text-center gap-2 mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-orange-500 mb-2">FlavourCompass</h1>
           <p className="text-sm sm:text-base text-gray-600">
