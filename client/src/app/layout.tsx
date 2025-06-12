@@ -14,9 +14,16 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FlavourCompass",
-  description: "An AI powered food ordering platform, use the AI agent to order food from the nearest vendor",
-};
+  title: "FlavourCompass - Discover Amazing African Cuisine Near You",
+  description:
+    "AI-powered platform connecting food lovers with authentic African dishes and trusted vendors. Find jollof rice, amala, egusi, and more in your area.",
+  keywords: "African food, jollof rice, amala, egusi, food delivery, AI food discovery, African cuisine, food vendors",
+  openGraph: {
+    title: "FlavourCompass - Discover Amazing African Cuisine",
+    description: "AI-powered platform for discovering authentic African dishes near you",
+    type: "website",
+  },
+}
 
 export default function RootLayout({
   children,
