@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import PhoneInput from "react-phone-input-2"
 import "react-phone-input-2/lib/style.css"
 import Link from "next/link"
-import { registerUser } from "@/sevices/auth.service"
+import { signUp } from "@/sevices/auth.service"
 import { useState } from "react"
 import toast from "react-hot-toast"
 import { useRouter } from "next/navigation"
@@ -63,7 +63,7 @@ export default function SignupPage() {
       };
 
       // Register user
-      const response = await registerUser(transformedData);
+      const response = await signUp(data);
       toast.success(response.message);
       console.log(response.message);
       router.push("/auth/login");
