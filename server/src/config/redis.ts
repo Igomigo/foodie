@@ -20,11 +20,11 @@ export class RedisConfig {
         });
 
         this.redis.on('connect', () => {
-            this.logger.log("connected to redis", this);
+            this.logger.log("connected to redis", 'RedisConfig');
         });
 
         this.redis.on('error', () => {
-            this.logger.error("failed to connect to redis", this);
+            this.logger.error("failed to connect to redis", 'RedisConfig');
             process.exit(1);
         });
     }
@@ -36,9 +36,9 @@ export class RedisConfig {
     public async disconnect() {
         try {
             await this.redis.quit();
-            this.logger.log("disconnected from redis", this);
+            this.logger.log("disconnected from redis", 'RedisConfig');
         } catch (error) {
-            this.logger.error("failed to disconnect from redis", this);
+            this.logger.error("failed to disconnect from redis", 'RedisConfig');
             process.exit(1);
         }
     }

@@ -39,6 +39,7 @@ export class AuthController {
                     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
                     path: "/api/v1/auth/refresh-token"
                 });
+                this.logger.info(`Refresh token set in cookie: ${result.data.refreshToken}`, 'AuthController');
             }
 
             // Remove refresh token from response data
@@ -50,7 +51,7 @@ export class AuthController {
                 data: userData ? userData : null
             });
         } catch (error: any) {
-            this.logger.error(error.message, "AuthController");
+            this.logger.error(error.message, 'AuthController');
             return response(res, 500, {
                 success: false,
                 message: "Login failed",
