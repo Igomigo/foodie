@@ -1,8 +1,18 @@
+"use client"
 import Link from "next/link"
 import { ArrowRight, MapPin, Users, ChefHat, Sparkles, Star, Clock, Shield } from "lucide-react"
 import Image from "next/image"
+import { useState, useEffect } from "react"
 
 export default function LandingPage() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    // Check if the user is already logged in
+    const token = localStorage.getItem("accessToken") ? true : false;
+    setIsLoggedIn(token);
+  }, []);
+
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
@@ -26,10 +36,10 @@ export default function LandingPage() {
                 For Vendors
               </Link>
               <Link
-                href="auth/signup"
+                href={isLoggedIn ? "/home" : "auth/signup"}
                 className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors"
               >
-                Get Started
+                {isLoggedIn ? "Home" : "Get Started"}
               </Link>
             </div>
           </div>

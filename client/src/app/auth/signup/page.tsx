@@ -15,7 +15,7 @@ const signupSchema = z
   .object({
     username: z.string().min(3, { message: "Username must have at least 3 characters" }),
     email: z.string().email({ message: "Invalid email address" }),
-    password: z.string().min(5, { message: "Password must have at least 5 characters" }),
+    password: z.string().min(6, { message: "Password must have at least 6 characters" }),
     confirmPassword: z.string().min(1, { message: "Confirm password is required" }),
     phoneNumber: z.string().min(1, { message: "Phone number is required" }),
     country: z.string().min(1, { message: "Country is required" }),
@@ -58,7 +58,7 @@ export default function SignupPage() {
       toast.success(response?.data?.message || "Signup successful");
       console.log(response?.data?.message);
 
-      router.push("/auth/login");
+      router.replace("/auth/login");
     } catch (error: any) {
       toast.error(error.response?.data?.errors || error.response?.data?.message);
       console.error("signup failed", error.response?.data?.message);

@@ -35,7 +35,7 @@ export const signIn = async (data: LoginFormData) => {
     try {
         console.log("Logging in user", data);
         const response = await axiosInstance.post('/auth/login', data);
-        loginUser(response?.data?.accessToken);
+        loginUser(response?.data?.data?.accessToken);
         return response?.data;
     } catch (error: any) {
         throw error;

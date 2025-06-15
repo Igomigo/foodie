@@ -7,12 +7,13 @@ import { useState } from "react"
 import toast from "react-hot-toast"
 import { useRouter } from "next/navigation"
 import { signIn } from "@/sevices/auth.service"
+import { Eye, EyeOff } from "lucide-react"
 
 // Create form data validation schema
 const loginSchema = z
   .object({
     email: z.string().email({ message: "Invalid email address" }),
-    password: z.string().min(5, { message: "Password must have at least 5 characters" }),
+    password: z.string().min(6, { message: "Password must have at least 6 characters" }),
   });
 
 export type LoginFormData = z.infer<typeof loginSchema>
@@ -23,6 +24,7 @@ export default function LoginPage() {
 
   // State Management
   const [isLoading, setIsLoading] = useState(false);
+  const [seePassword, setSeePassword] = useState(false);  
 
   // Initialize form
   const {
@@ -51,7 +53,7 @@ export default function LoginPage() {
         router.replace("/home");
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.errors[0] || error.response?.data?.message);
+      toast.error(error.response?.data?.errors || error.response?.data?.message);
     } finally {
       setIsLoading(false);
     }
@@ -84,7 +86,7 @@ export default function LoginPage() {
             {errors.email && <p className="text-red-600 text-sm">{errors.email.message}</p>}
           </div>
 
-          <div className="flex flex-col gap-2">
+          <div className="relative flex flex-col gap-2">
             <label className="text-gray-600 text-sm font-semibold" htmlFor="password">
               Password{" "}
               <span className="text-red-500" aria-label="required">
@@ -92,12 +94,19 @@ export default function LoginPage() {
               </span>
             </label>
             <input
-              type="password"
+              type={seePassword ? "text" : "password"}
               id="password"
               className="w-full px-4 py-2 rounded-lg text-gray-500 font-semibold border border-gray-300 hover:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors"
               {...register("password")}
               placeholder="Enter your password"
             />
+            <button
+              type="button"
+              onClick={() => setSeePassword(!seePassword)}
+              className="absolute right-4 top-1/2 text-gray-500 hover:text-orange-500 transition-colors ease-in-out duration-500"
+            >
+              {seePassword ? <EyeOff /> : <Eye />}
+            </button>
             {errors.password && <p className="text-red-600 text-sm">{errors.password.message}</p>}
           </div>
 
