@@ -38,14 +38,18 @@ export class LoginService {
             const refreshToken = await this.jwtService.generateRefreshToken({ userId: user._id });
 
             // Return success response
+            const userData = {
+                _id: user._id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                accessToken,
+                refreshToken
+            }
             return {
                 statusCode: 200,
                 message: "Login successful",
-                data: {
-                    user,
-                    accessToken,
-                    refreshToken
-                }
+                data: userData
             }
         } catch (error: any) {
             this.logger.error(error.message, "LoginService");

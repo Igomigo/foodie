@@ -37,9 +37,8 @@ export class AuthController {
                     sameSite: "lax",
                     secure: process.env.NODE_ENV === "production", // Over https only in production
                     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-                    path: "/api/v1/auth/refresh-token"
+                    path: "/"
                 });
-                this.logger.info(`Refresh token set in cookie: ${result.data.refreshToken}`, 'AuthController');
             }
 
             // Remove refresh token from response data

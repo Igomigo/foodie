@@ -34,6 +34,9 @@ class User {
     @Prop({ type: () => Object, required: true })
     location!: Location;
 
+    @Prop({ required: true, enum: ["user", "vendor"] })
+    role!: string;
+
     @Prop({ type: [mongoose.Types.ObjectId], ref: "Vendor", default: [] })
     favourites?: mongoose.Types.ObjectId[];
 
