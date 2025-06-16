@@ -95,7 +95,7 @@ export default function LandingPage() {
             <div className="relative animate-fade-in-right">
               <div className="relative z-10">
                 <Image
-                  src="/images/native-rice-and-stew.jpeg"
+                  src="/images/eba-and-egusi-soup.jpeg"
                   alt="Delicious African cuisine including jollof rice, amala, and traditional soups"
                   width={600}
                   height={600}
@@ -224,10 +224,10 @@ export default function LandingPage() {
 
             <div className="relative">
               <Image
-                src="/images/happy-customer-african-meal.jpg"
+                src="/images/Ofada Rice and Sauce.jpeg"
                 alt="Happy customer enjoying traditional African meal with rice and soup"
-                width={600}
-                height={500}
+                width={400}
+                height={400}
                 className="w-full h-auto rounded-2xl shadow-2xl"
                 placeholder="blur"
                 blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
@@ -254,10 +254,10 @@ export default function LandingPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="relative order-2 lg:order-1">
               <Image
-                src="/images/african-food-vendor-kitchen.jpg"
+                src="/images/african-food-vendors.jpeg"
                 alt="African food vendor preparing traditional dishes in modern kitchen"
-                width={600}
-                height={500}
+                width={400}
+                height={400}
                 className="w-full h-auto rounded-2xl shadow-2xl"
                 placeholder="blur"
                 blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
