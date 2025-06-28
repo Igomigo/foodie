@@ -8,8 +8,19 @@ export const axiosInstance = axios.create({
   },
 });
 
-// Token management functions
-const getAccessToken = () => localStorage.getItem("accessToken");
+// User and token management functions
+export const getUser = () => {
+  if (typeof window !== 'undefined') {
+    const userStr = localStorage.getItem("user");
+    return userStr ? JSON.parse(userStr) : null;
+  }
+  return null;
+};
+
+export const getAccessToken = () => {
+  const user = getUser();
+  return user?.accessToken || null;
+};
 
 const setAuthHeader = (token: string | null) => {
   if (token) {
@@ -46,8 +57,13 @@ axiosInstance.interceptors.response.use(
         const response = await axiosInstance.post('/auth/refresh-token');
         const { accessToken } = response.data;
 
-        // Update the access token
-        localStorage.setItem("accessToken", accessToken);
+        // Update the user object with new access token
+        const user = getUser();
+        if (user) {
+          user.accessToken = accessToken;
+          localStorage.setItem("user", JSON.stringify(user));
+        }
+        
         setAuthHeader(accessToken);
 
         // Retry the original request with the new token
@@ -71,13 +87,30 @@ axiosInstance.interceptors.response.use(
 );
 
 // Auth management functions
-export const loginUser = (accessToken: string) => {
-  localStorage.setItem("accessToken", accessToken);
-  setAuthHeader(accessToken);
+export const loginUser = (userData: { 
+  accessToken: string;
+  userId: string;
+  role: string;
+  [key: string]: any; // For any additional user data
+}) => {
+  localStorage.setItem("user", JSON.stringify(userData));
+  setAuthHeader(userData.accessToken);
 };
 
 export const logoutUser = () => {
-  localStorage.removeItem("accessToken");
+  localStorage.removeItem("user");
   setAuthHeader(null);
   // The refresh token cookie will be cleared by the server
+};
+
+// Helper function to get user role
+export const getUserRole = () => {
+  const user = getUser();
+  return user?.role || null;
+};
+
+// Helper function to get user ID
+export const getUserId = () => {
+  const user = getUser();
+  return user?.userId || null;
 };

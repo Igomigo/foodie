@@ -3,14 +3,14 @@ import Link from "next/link"
 import { ArrowRight, MapPin, Users, ChefHat, Sparkles, Star, Clock, Shield } from "lucide-react"
 import Image from "next/image"
 import { useState, useEffect } from "react"
-
+import { getAccessToken } from "@/config/axios"
 export default function LandingPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     // Check if the user is already logged in
-    const token = localStorage.getItem("accessToken") ? true : false;
-    setIsLoggedIn(token);
+    const token = getAccessToken()
+    setIsLoggedIn(token ? true : false);
   }, []);
 
   return (

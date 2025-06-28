@@ -17,7 +17,8 @@ export const signUp = async (data: SignupFormData) => {
                 country: data.country,
                 state: data.state,
                 city: data.city
-            }
+            },
+            role: "user"
         };
         const response = await axiosInstance.post('/auth/signup', transformedData);
         return response?.data;
@@ -35,7 +36,7 @@ export const signIn = async (data: LoginFormData) => {
     try {
         console.log("Logging in user", data);
         const response = await axiosInstance.post('/auth/login', data);
-        loginUser(response?.data?.data?.accessToken);
+        loginUser(response?.data?.data);
         return response?.data;
     } catch (error: any) {
         throw error;
