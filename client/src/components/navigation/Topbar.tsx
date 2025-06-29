@@ -3,7 +3,7 @@ import Search from '../Search'
 
 export default function Topbar() {
   return (
-    <div className='flex justify-between items-center p-4 bg-red-500'>
+    <div className='flex justify-between items-center px-6 py-4 border-b-1 border-b-gray-200'>
       <div>
         <Search />
       </div>
