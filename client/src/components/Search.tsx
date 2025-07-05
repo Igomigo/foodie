@@ -6,7 +6,7 @@ import { Search } from 'lucide-react';
 export default function SearchComponent() {
   return (
     <div className='flex lg:w-sm sm:ml-10 items-center gap-2 bg-gray-200 rounded-md p-2 border border-transparent group focus-within:border-orange-500'>
-      <Search />
+      <Search className='text-gray-500' />
       <input
         type="search"
         placeholder='Search'
@@ -15,7 +15,6 @@ export default function SearchComponent() {
           console.log(e.target.value)
         }}
       />
-      <button className='bg-orange-500 text-white px-4 py-1 group-hover:bg-orange-600 rounded-md'>Search</button>
     </div>
   )
 }
