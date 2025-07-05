@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   keywords:
     "African food, jollof rice, amala, egusi, food delivery, AI food discovery, African cuisine, food vendors",
   openGraph: {
-    title: "FlavourCompass - Discover Amazing African Cuisine",
+    title: "Foodie - Discover Amazing African Cuisine",
     description:
       "AI-powered platform for discovering authentic African dishes near you",
     type: "website",
