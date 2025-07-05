@@ -2,16 +2,12 @@
 
 import Navbar from "./Navbar";
 
-export default function Sidebar({
-  onToggle,
-}: {
-  onToggle: (isOpen: boolean) => void;
-}) {
+export default function Sidebar() {
   return (
     // Sidebar for desktop
     <div className="">
       <div className="hidden md:block">
-        <Navbar onToggle={onToggle} />
+        <Navbar />
       </div>
     </div>
   );

@@ -1,15 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Search from "../Search";
 import MobileMenu from "./MobileMenu";
-import {
-  Menu,
-  Bell,
-  ShoppingCart,
-  User,
-  ChevronDown,
-  ChevronUp,
-  Mail,
-} from "lucide-react";
+import { Menu, Bell, ShoppingCart, User } from "lucide-react";
 import Link from "next/link";
 import { getLocation } from "../../sevices/location.service";
 import Location from "../Location";
@@ -21,8 +13,6 @@ interface TopbarProps {
 export default function Topbar({ sidebarOpen }: TopbarProps) {
   const [location, setLocation] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const [loadingLocation, setLoadingLocation] = useState(true);
 
   useEffect(() => {
@@ -38,21 +28,6 @@ export default function Topbar({ sidebarOpen }: TopbarProps) {
       }
     };
     fetchLocation();
-  }, []);
-
-  useEffect(() => {
-    // Close dropdown when clicking outside
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
@@ -89,45 +64,18 @@ export default function Topbar({ sidebarOpen }: TopbarProps) {
             href="/notifications"
             className="hover:bg-gray-100 rounded-md md:p-3 transition-colors"
           >
-            <Bell size={20} className="text-gray-700" />
+            <Bell size={18} className="text-gray-700" />
           </Link>
           <Link
             href="/cart"
             className="hover:bg-gray-100 rounded-md md:p-3 transition-colors"
           >
-            <ShoppingCart size={20} className="text-gray-700" />
+            <ShoppingCart size={18} className="text-gray-700" />
           </Link>
         </nav>
         {/** Profile */}
-        <div
-          ref={dropdownRef}
-          className="relative hover:bg-gray-100 border border-gray-200 rounded-full p-3 transition-colors"
-          onClick={() => setDropdownOpen(!dropdownOpen)}
-        >
-          <div className="flex items-center space-x-2">
-            <User size={20} className="text-gray-700" />
-            <div>
-              {dropdownOpen ? (
-                <ChevronUp size={20} className="text-gray-700" />
-              ) : (
-                <ChevronDown size={20} className="text-gray-700" />
-              )}
-            </div>
-          </div>
-          {dropdownOpen && (
-            <Link href="/profile" className="absolute top-12 right-0 w-48 bg-white rounded-md shadow-md">
-              <div className="p-4 flex flex-col space-y-2">
-                <div className="flex items-center space-x-2">
-                  <User size={15} className="text-sm text-gray-700"/>
-                  <p className="text-gray-700 text-sm">John Doe</p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Mail size={15} className="text-sm text-gray-700"/>
-                  <p className="text-gray-700 text-sm text-ellipsis overflow-hidden whitespace-nowrap">john.doe@example.com</p>
-                </div>
-              </div>
-            </Link>
-          )}
+        <div className="relative hover:bg-gray-100 border border-gray-200 rounded-full p-3 transition-colors">
+          <User size={20} className="text-gray-700" />
         </div>
       </div>
     </div>

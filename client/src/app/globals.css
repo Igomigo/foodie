@@ -117,7 +117,8 @@ html {
 .phone-input-container .react-tel-input .country-list {
   border-radius: 8px !important;
   border: 1px solid #d1d5db !important;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
   max-height: 200px !important;
   z-index: 50 !important;
 }
@@ -163,4 +164,30 @@ html {
   .phone-input-container .react-tel-input .country-list {
     max-height: 150px !important;
   }
+}
+
+/* Custom Scrollbar Styles */
+.scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.scrollbar::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Firefox scrollbar */
+.scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f1f1f1;
 }

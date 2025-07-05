@@ -10,7 +10,7 @@ export default function SearchComponent() {
       <input
         type="search"
         placeholder='Search for dishes, restaurants, or cuisines...'
-        className='hidden w-full lg:block flex-1 border-none outline-none bg-transparent font-semibold text-gray-700'
+        className='hidden w-full text-sm lg:block flex-1 border-none outline-none bg-transparent font-semibold text-gray-700'
         onChange={(e) => {
           console.log(e.target.value)
         }}
