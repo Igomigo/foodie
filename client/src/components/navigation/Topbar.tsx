@@ -8,17 +8,37 @@ import {
   User,
   ChevronDown,
   ChevronUp,
+  Mail,
 } from "lucide-react";
 import Link from "next/link";
+import { getLocation } from "../../sevices/location.service";
+import Location from "../Location";
 
 interface TopbarProps {
   sidebarOpen: boolean;
 }
 
 export default function Topbar({ sidebarOpen }: TopbarProps) {
+  const [location, setLocation] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [loadingLocation, setLoadingLocation] = useState(true);
+
+  useEffect(() => {
+    // Get user's current location from ipapi.co
+    const fetchLocation = async () => {
+      try {
+        const location = await getLocation();
+        setLocation(location);
+      } catch (error) {
+        setLocation("Location");
+      } finally {
+        setLoadingLocation(false);
+      }
+    };
+    fetchLocation();
+  }, []);
 
   useEffect(() => {
     // Close dropdown when clicking outside
@@ -57,6 +77,8 @@ export default function Topbar({ sidebarOpen }: TopbarProps) {
         </div>
         {/** Search */}
         <Search />
+        {/** Location */}
+        <Location location={location} loading={loadingLocation} />
       </div>
 
       {/** Right Side */}
@@ -93,12 +115,18 @@ export default function Topbar({ sidebarOpen }: TopbarProps) {
             </div>
           </div>
           {dropdownOpen && (
-            <div className="absolute top-12 right-0 w-48 bg-white rounded-md shadow-md">
-              <div className="p-4">
-                <h3 className="text-sm font-medium text-gray-700">Profile</h3>
-                <p className="text-sm text-gray-500">John Doe</p>
+            <Link href="/profile" className="absolute top-12 right-0 w-48 bg-white rounded-md shadow-md">
+              <div className="p-4 flex flex-col space-y-2">
+                <div className="flex items-center space-x-2">
+                  <User size={15} className="text-sm text-gray-700"/>
+                  <p className="text-gray-700 text-sm">John Doe</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Mail size={15} className="text-sm text-gray-700"/>
+                  <p className="text-gray-700 text-sm text-ellipsis overflow-hidden whitespace-nowrap">john.doe@example.com</p>
+                </div>
               </div>
-            </div>
+            </Link>
           )}
         </div>
       </div>
