@@ -6,7 +6,6 @@ import Link from "next/link";
 import { getLocation } from "../../sevices/location.service";
 import Location from "../Location";
 
-
 export default function Topbar() {
   const [location, setLocation] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -28,16 +27,14 @@ export default function Topbar() {
   }, []);
 
   return (
-    <div
-      className="flex justify-between items-center fixed top-0 z-40 px-4 md:px-6 py-4 border-b-1 border-b-gray-200 bg-white transition-all duration-500 md:left-64 left-0 right-0"
-    >
+    <div className="flex justify-between items-center fixed top-0 z-40 px-4 md:px-6 py-4 border-b-1 border-b-gray-200 bg-white transition-all duration-500 md:left-64 left-0 right-0">
       {/** Left Side */}
       <div className="flex items-center space-x-2">
         {/** Mobile Menu */}
         <div className="md:hidden">
           <button
             onClick={() => setIsOpen(true)}
-            className="p-2 bg-gray-400 rounded-lg shadow-md hover:bg-gray-50 transition-colors"
+            className="p-2 bg-orange-500 hover:bg-orange-600 rounded-lg shadow-md transition-colors"
           >
             <Menu size={24} className="text-white" />
           </button>

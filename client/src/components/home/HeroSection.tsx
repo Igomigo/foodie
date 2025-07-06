@@ -56,7 +56,7 @@ export default function HeroSection() {
         <p className="text-orange-100 mb-4">
           What delicious African cuisine are you craving today?
         </p>
-        <div className="flex items-center justify-between text-sm">
+        <div className="flex items-center text-sm gap-4">
           <div className="flex items-center gap-1">
             <MapPin className="w-4 h-4" />
             <span>{isLoadingLocation ? "..." : location}</span>
