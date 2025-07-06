@@ -67,7 +67,9 @@ export default function Navbar() {
             {menuItems.map((item) => (
               <div key={item.title}>
                 <div className="flex flex-col space-y-2 px-2">
-                  <p className="text-xs pl-2 text-gray-700">{item.title}</p>
+                  <p className="text-xs pl-2 text-gray-500 font-semibold">
+                    {item.title}
+                  </p>
                   {item.items.map((item) => (
                     <Link
                       key={item.title}

@@ -32,7 +32,7 @@ export default function Topbar({ sidebarOpen }: TopbarProps) {
 
   return (
     <div
-      className={`flex justify-between items-center fixed top-0 z-40 px-6 md:px-8 py-4 border-b-1 border-b-gray-200 bg-white transition-all duration-500 ${
+      className={`flex justify-between items-center fixed top-0 z-40 px-4 md:px-6 py-4 border-b-1 border-b-gray-200 bg-white transition-all duration-500 ${
         sidebarOpen ? "md:left-64" : "md:left-12"
       } left-0 right-0`}
     >
@@ -42,7 +42,7 @@ export default function Topbar({ sidebarOpen }: TopbarProps) {
         <div className="md:hidden">
           <button
             onClick={() => setIsOpen(true)}
-            className="p-2 bg-orange-500 rounded-lg shadow-md hover:bg-gray-50 transition-colors"
+            className="p-2 bg-gray-500 rounded-lg shadow-md hover:bg-gray-50 transition-colors"
           >
             <Menu size={24} className="text-white" />
           </button>
