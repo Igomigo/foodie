@@ -15,7 +15,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/** Main Content area */}
       <div className="flex flex-col flex-1 transition-all duration-500 md:ml-64">
         {/** Topbar */}
-        <Topbar sidebarOpen={true} />
+        <Topbar />
         <main className="flex-1 mt-16">{children}</main>
       </div>
     </div>
