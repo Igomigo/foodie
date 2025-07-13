@@ -1,7 +1,7 @@
 import Joi from "joi";
 
 export const signUpSchema = Joi.object({
-    username: Joi.string().required(),
+    username: Joi.string().optional(),
     email: Joi.string().email().required(),
     password: Joi.string().required().min(6),
     phoneNumber: Joi.string().required(),
@@ -13,5 +13,5 @@ export const signUpSchema = Joi.object({
         street2: Joi.string().optional(),
         zip: Joi.string().required()
     }),
-    role: Joi.string().required().valid("user")
+    role: Joi.string().required().valid("user", "vendor")
 });

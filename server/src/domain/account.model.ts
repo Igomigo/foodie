@@ -1,4 +1,4 @@
-import { getModelForClass, ModelOptions, Prop } from "@typegoose/typegoose";
+import { getModelForClass, ModelOptions, Prop, Severity } from "@typegoose/typegoose";
 import mongoose from "mongoose";
 
 /**
@@ -24,12 +24,15 @@ type Location = {
     versionKey: false,
     discriminatorKey: "role",
   },
+  options: {
+    allowMixed: Severity.ALLOW,
+  },
 })
 class Account {
   _id?: mongoose.Types.ObjectId;
 
-  @Prop({ required: true, unique: true })
-  username!: string;
+  @Prop({ required: false, unique: true })
+  username?: string;
 
   @Prop({ required: true, unique: true })
   email!: string;

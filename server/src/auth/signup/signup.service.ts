@@ -1,6 +1,6 @@
 import { Service } from "typedi";
-import { User } from "../../domain/user.model";
-import { UserRepository } from "../../repositories/userRepository/userRepo";
+import { Account } from "../../domain/account.model";
+import { AccountRepository } from "../../repositories/accountRepository/accountRepo";
 import { Logger } from "../../utils/logger";
 import { RedisService } from "../../services/redisService";
 import * as bcrypt from "bcrypt";
@@ -9,15 +9,15 @@ import * as bcrypt from "bcrypt";
 export class SignupService {
 
     constructor(
-        private readonly userRepo: UserRepository,
+        private readonly accountRepo: AccountRepository,
         private readonly logger: Logger,
         private readonly redis: RedisService
     ) {}
 
-    public async signup(data: User) {
+    public async signup(data: Account) {
         try {
             // Check if user already exists
-            const user = await this.userRepo.findByEmail(data.email);
+            const user = await this.accountRepo.findByEmail(data.email);
             if (user) {
                 return {
                     "statusCode": 409,
@@ -29,9 +29,9 @@ export class SignupService {
             const hashedPassword = await this.hashPassword(data.password);
 
             // Create new user
-            const newUser = await this.userRepo.create({
+            const newUser = await this.accountRepo.create({
                 ...data,
-                password: hashedPassword
+                password: hashedPassword,
             });
 
             // Store the new user object in redis

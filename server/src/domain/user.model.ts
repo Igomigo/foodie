@@ -3,6 +3,12 @@ import { Account, AccountModel } from "./account.model";
 import mongoose from "mongoose";
 
 class User extends Account {
+  @Prop({ required: false })
+  firstName?: string;
+
+  @Prop({ required: false })
+  lastName?: string;
+
   @Prop({
     type: [mongoose.Types.ObjectId],
     ref: () => Account,
