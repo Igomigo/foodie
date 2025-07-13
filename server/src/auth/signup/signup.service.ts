@@ -1,8 +1,7 @@
 import { Service } from "typedi";
-import { User } from "../../user/domain/user.model";
+import { User } from "../../domain/user.model";
 import { UserRepository } from "../../repositories/userRepository/userRepo";
 import { Logger } from "../../utils/logger";
-import { serviceResponse } from "../../interfaces/serviceResponse";
 import { RedisService } from "../../services/redisService";
 import * as bcrypt from "bcrypt";
 
@@ -15,7 +14,7 @@ export class SignupService {
         private readonly redis: RedisService
     ) {}
 
-    public async signup(data: User): Promise<serviceResponse<User>> {
+    public async signup(data: User) {
         try {
             // Check if user already exists
             const user = await this.userRepo.findByEmail(data.email);
