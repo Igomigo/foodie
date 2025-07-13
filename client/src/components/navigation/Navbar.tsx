@@ -61,7 +61,9 @@ export default function Navbar() {
           <p className="text-xs text-gray-500">AI-Powered Food Discovery</p>
         </div>
       </div>
-      <nav className="flex-1 overflow-y-auto w-full scrollbar">
+
+      {/** Nav Items Section */}
+      <nav className="flex-1 overflow-y-auto w-full scrollbar scroll-smooth">
         <div className="flex flex-col space-y-10 py-5">
           <>
             {menuItems.map((item) => (
@@ -97,6 +99,8 @@ export default function Navbar() {
           </>
         </div>
       </nav>
+      
+      {/** AI Premium Section */}
       <div className="p-2 pb-4 flex flex-col">
         <div className="p-3 bg-gradient-to-r from-orange-400 to-orange-600 text-white rounded-lg space-y-2">
           <div className="flex items-center space-x-2">
