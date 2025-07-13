@@ -17,7 +17,7 @@ export class SignupService {
     public async signup(data: Account) {
         try {
             // Check if user already exists
-            const user = await this.accountRepo.findByEmail(data.email);
+            const user = await this.accountRepo.findByEmailOrUsername(data.email, data.username || "");
             if (user) {
                 return {
                     "statusCode": 409,

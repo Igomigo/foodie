@@ -1,14 +1,14 @@
 import { Service } from "typedi";
-import { UserRepository } from "../../repositories/userRepository/userRepo";
+import { AccountRepository } from "../../repositories/accountRepository/accountRepo";
 import { Logger } from "../../utils/logger";
-import { User } from "../../user/domain/user.model";
+import { User } from "../../domain/user.model";
 import * as bcrypt from "bcrypt";
 import { JwtService } from "../../utils/jwt";
 
 @Service()
 export class LoginService {
     constructor(
-        private readonly userRepo: UserRepository,
+        private readonly accountRepo: AccountRepository,
         private readonly logger: Logger,
         private readonly jwtService: JwtService
     ) {}
@@ -16,7 +16,7 @@ export class LoginService {
     async login(data: User) {
         try {
             // Check if user exists
-            const user = await this.userRepo.findByEmail(data.email);
+            const user = await this.accountRepo.findByEmail(data.email);
             if (!user) {
                 return {
                     statusCode: 404,
