@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { SignupService } from "./signup/signup.service";
+import { SignupService } from "./signup/userSignup.service";
 import { response } from "../interfaces/apiResponse";
 import { Service } from "typedi";
 import { LoginService } from "./signIn/signIn.service";

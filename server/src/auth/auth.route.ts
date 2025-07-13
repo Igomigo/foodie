@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import { Service } from "typedi";
-import { signUpSchema } from "./signup/signup.dto";
+import { signUpSchema } from "./signup/userSignup.dto";
 import { validate } from "../validators/base.validator";
 import { AuthController } from "./auth.controller";
 import { SignInSchema } from "./signIn/signIn.dto";
