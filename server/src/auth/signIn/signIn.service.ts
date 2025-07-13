@@ -2,15 +2,16 @@ import { Service } from "typedi";
 import { AccountRepository } from "../../repositories/accountRepository/accountRepo";
 import { Logger } from "../../utils/logger";
 import { User } from "../../domain/user.model";
-import * as bcrypt from "bcrypt";
 import { JwtService } from "../../utils/jwt";
+import { Bcrypt } from "../../utils/hashPassword";
 
 @Service()
 export class LoginService {
     constructor(
         private readonly accountRepo: AccountRepository,
         private readonly logger: Logger,
-        private readonly jwtService: JwtService
+        private readonly jwtService: JwtService,
+        private readonly bcrypt: Bcrypt
     ) {}
 
     async login(data: User) {
@@ -25,7 +26,7 @@ export class LoginService {
             }
 
             // Check if password is correct
-            const isValid = await bcrypt.compare(data.password, user.password);
+            const isValid = await this.bcrypt.compare(data.password, user.password);
             if (!isValid) {
                 return {
                     statusCode: 400,

@@ -3,7 +3,7 @@ import { Account } from "../../domain/account.model";
 import { AccountRepository } from "../../repositories/accountRepository/accountRepo";
 import { Logger } from "../../utils/logger";
 import { RedisService } from "../../services/redisService";
-import * as bcrypt from "bcrypt";
+import { Bcrypt } from "../../utils/hashPassword";
 
 @Service()
 export class SignupService {
@@ -11,7 +11,8 @@ export class SignupService {
     constructor(
         private readonly accountRepo: AccountRepository,
         private readonly logger: Logger,
-        private readonly redis: RedisService
+        private readonly redis: RedisService,
+        private readonly bcrypt: Bcrypt
     ) {}
 
     public async signup(data: Account) {
@@ -26,7 +27,7 @@ export class SignupService {
             }
 
             // Hash password
-            const hashedPassword = await this.hashPassword(data.password);
+            const hashedPassword = await this.bcrypt.hash(data.password);
 
             // Create new user
             const newUser = await this.accountRepo.create({
@@ -53,9 +54,5 @@ export class SignupService {
                 "error": error.message
             }
         }
-    }
-
-    private async hashPassword(password: string): Promise<string> {
-        return await bcrypt.hash(password, 10);
     }
 }

@@ -13,5 +13,5 @@ export const signUpSchema = Joi.object({
         street2: Joi.string().optional(),
         zip: Joi.string().required()
     }),
-    role: Joi.string().required().valid("user", "vendor")
+    role: Joi.string().required().valid("user")
 });
