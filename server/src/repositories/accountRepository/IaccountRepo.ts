@@ -1,6 +1,6 @@
 import { Account } from "../../domain/account.model";
-import { BaseRepository } from "../baseRepository";
+import { IBaseRepository } from "../baseRepositoryInterface";
 
-export interface IAccountRepository extends BaseRepository<Account> {
+export interface IAccountRepository extends IBaseRepository<Account> {
   findByEmail(email: string): Promise<Account | null>;
 }
