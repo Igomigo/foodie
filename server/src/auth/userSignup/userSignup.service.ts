@@ -1,14 +1,13 @@
-import { AccountRepository } from "../../repositories/accountRepository/accountRepo";
 import { Service } from "typedi";
+import { Account } from "../../domain/account.model";
+import { AccountRepository } from "../../repositories/accountRepository/accountRepo";
 import { Logger } from "../../utils/logger";
-import { Vendor } from "../../domain/vendor.model";
 import { RedisService } from "../../services/redisService";
 import { Bcrypt } from "../../utils/hashPassword";
 import { serviceResponse } from "../../interfaces/serviceResponse";
-import { Account } from "../../domain/account.model";
 
 @Service()
-export class VendorSignupService {
+export class UserSignupService {
   constructor(
     private readonly accountRepo: AccountRepository,
     private readonly logger: Logger,
@@ -16,44 +15,47 @@ export class VendorSignupService {
     private readonly bcrypt: Bcrypt
   ) {}
 
-  public async signup(data: Vendor): Promise<serviceResponse<Account>> {
+  public async signup(data: Account): Promise<serviceResponse<Account>> {
     try {
       // Check if user already exists
-      const vendor = await this.accountRepo.findByEmail(data.email);
-      if (vendor) {
+      const user = await this.accountRepo.findByEmailOrUsername(
+        data.email,
+        data.username || ""
+      );
+      if (user) {
         return {
           statusCode: 409,
-          message: "Vendor already exists",
+          message: "User already exists",
         };
       }
 
       // Hash password
-      const hashedPwd = await this.bcrypt.hash(data.password);
+      const hashedPassword = await this.bcrypt.hash(data.password);
 
       // Create new user
-      const newVendor = await this.accountRepo.create({
+      const newUser = await this.accountRepo.create({
         ...data,
-        password: hashedPwd,
+        password: hashedPassword,
       });
 
       // Store the new user object in redis
-      await this.redis.set(`vendor:${newVendor._id}`, newVendor);
+      await this.redis.set(`user:${newUser._id}`, newUser);
 
       // Return success response
       this.logger.info(
-        `Vendor created successfully: ${newVendor.email}`,
-        "Vendor Signup"
+        `User created successfully: ${newUser.username}`,
+        "SignupService"
       );
       return {
         statusCode: 201,
-        message: "Vendor created successfully",
-        data: newVendor,
+        message: "User account created successfully",
+        data: newUser,
       };
     } catch (error: any) {
-      this.logger.error(error.message, "Vendor Signup");
+      this.logger.error(error.message, "SignupService");
       return {
         statusCode: 500,
-        message: "Failed to create vendor account",
+        message: "Failed to create user account",
         error: error.message,
       };
     }
