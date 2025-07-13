@@ -35,8 +35,8 @@ export class LoginService {
             }
 
             // Generate tokens
-            const accessToken = await this.jwtService.generateAccessToken({ userId: user._id });
-            const refreshToken = await this.jwtService.generateRefreshToken({ userId: user._id });
+            const accessToken = await this.jwtService.generateAccessToken({ userId: user._id, role: user.role });
+            const refreshToken = await this.jwtService.generateRefreshToken({ userId: user._id, role: user.role });
 
             // Return success response
             const userData = {

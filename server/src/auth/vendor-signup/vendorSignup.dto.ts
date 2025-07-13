@@ -4,7 +4,6 @@ export const vendorSignupSchema = Joi.object({
     businessName: Joi.string().required(),
     email: Joi.string().email().required(),
     password: Joi.string().required(),
-    confirmPassword: Joi.string().required(),
     location: Joi.object({
         country: Joi.string().required(),
         state: Joi.string().required(),
