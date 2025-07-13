@@ -1,5 +1,3 @@
-import { Types } from "mongoose";
-
 export interface IBaseRepository<T> {
     create(data: T): Promise<T>;
     findOne(query: any): Promise<T | null>;

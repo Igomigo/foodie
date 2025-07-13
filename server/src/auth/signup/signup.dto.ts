@@ -8,7 +8,10 @@ export const signUpSchema = Joi.object({
     location: Joi.object({
         country: Joi.string().required(),
         state: Joi.string().required(),
-        city: Joi.string().required()
+        city: Joi.string().required(),
+        street1: Joi.string().required(),
+        street2: Joi.string().optional(),
+        zip: Joi.string().required()
     }),
     role: Joi.string().required().valid("user")
 });

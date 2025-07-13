@@ -18,8 +18,6 @@ class User extends Account {
   favouriteFoods?: mongoose.Types.ObjectId[];
 }
 
-export const UserModel = getDiscriminatorModelForClass(
-  AccountModel,
-  User,
-  "user"
-);
+const UserModel = getDiscriminatorModelForClass(AccountModel, User, "user");
+
+export { UserModel, User };

@@ -17,8 +17,10 @@ class Vendor extends Account {
   isApproved?: boolean;
 }
 
-export const VendorModel = getDiscriminatorModelForClass(
+const VendorModel = getDiscriminatorModelForClass(
   AccountModel,
   Vendor,
   "vendor"
 );
+
+export { VendorModel, Vendor };
