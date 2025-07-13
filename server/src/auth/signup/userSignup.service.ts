@@ -6,7 +6,7 @@ import { RedisService } from "../../services/redisService";
 import { Bcrypt } from "../../utils/hashPassword";
 
 @Service()
-export class SignupService {
+export class UserSignupService {
 
     constructor(
         private readonly accountRepo: AccountRepository,

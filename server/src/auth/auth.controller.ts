@@ -1,22 +1,36 @@
 import { Request, Response } from "express";
-import { SignupService } from "./signup/userSignup.service";
+import { UserSignupService } from "./signup/userSignup.service";
 import { response } from "../interfaces/apiResponse";
 import { Service } from "typedi";
 import { LoginService } from "./signIn/signIn.service";
 import { Logger } from "../utils/logger";
+import { VendorSignupService } from "./vendor-signup/vendor.signup.service";
 
 @Service()
 export class AuthController {
 
     constructor(
-        private readonly signupService: SignupService,
+        private readonly userSignupService: UserSignupService,
         private readonly loginService: LoginService,
+        private readonly vendorSignupService: VendorSignupService,
         private readonly logger: Logger
     ) {}
 
-    public async signup(req: Request, res: Response) {
+    public async userSignup(req: Request, res: Response) {
         const data = req.body;
-        const result = await this.signupService.signup(data);
+        const result = await this.userSignupService.signup(data);
+        return response(res, result.statusCode, {
+            success: result.statusCode === 201 ? true : false,
+            message: result.message,
+            data: result.data ? result.data : null,
+            errors: result.error ? result.error : null
+        });
+    }
+
+    public async vendorSignup(req: Request, res: Response) {
+
+        const data = req.body;
+        const result = await this.vendorSignupService.signup(data);
         return response(res, result.statusCode, {
             success: result.statusCode === 201 ? true : false,
             message: result.message,
