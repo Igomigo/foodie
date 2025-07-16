@@ -3,7 +3,7 @@ import { Account } from "../../domain/account.model";
 import { AccountRepository } from "../../repositories/accountRepository/accountRepo";
 import { Logger } from "../../utils/logger";
 import { RedisService } from "../../services/redisService";
-import { Bcrypt } from "../../utils/hashPassword";
+import { Bcrypt } from "../../utils/bcrypt";
 import { serviceResponse } from "../../interfaces/serviceResponse";
 
 @Service()

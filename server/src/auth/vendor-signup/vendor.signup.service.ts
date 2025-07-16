@@ -3,7 +3,7 @@ import { Service } from "typedi";
 import { Logger } from "../../utils/logger";
 import { Vendor } from "../../domain/vendor.model";
 import { RedisService } from "../../services/redisService";
-import { Bcrypt } from "../../utils/hashPassword";
+import { Bcrypt } from "../../utils/bcrypt";
 import { serviceResponse } from "../../interfaces/serviceResponse";
 import { Account } from "../../domain/account.model";
 
