@@ -1,5 +1,5 @@
 import { Service } from "typedi";
-import { AIService } from "./ai.service";
+import { AIService } from "./services/ai.service";
 import { Request, Response } from "express";
 import { response } from "../interfaces/apiResponse";
 
