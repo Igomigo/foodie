@@ -1,0 +1,6 @@
+POST http://localhost:5000/api/v1/ai/chat
+content-type: application/json
+
+{
+    "message": "I want to eat for a pizza, I am in Abuja"
+}
