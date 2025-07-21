@@ -5,6 +5,7 @@ import { Menu, Bell, ShoppingCart, User } from "lucide-react";
 import Link from "next/link";
 import { getLocation } from "../../sevices/location.service";
 import Location from "../Location";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Topbar() {
   const [location, setLocation] = useState("");
@@ -66,9 +67,12 @@ export default function Topbar() {
           </Link>
         </nav>
         {/** Profile */}
-        <div className="relative hover:bg-gray-100 border border-gray-200 rounded-full p-3 transition-colors">
-          <User size={20} className="text-gray-700" />
-        </div>
+        <Link href="/profile">
+          <Avatar className="hover:scale-110 cursor-pointer transition-all duration-500">
+            <AvatarImage src="/images/usera.png" alt="Avatar" />
+            <AvatarFallback>IF</AvatarFallback>
+          </Avatar>
+        </Link>
       </div>
     </div>
   );

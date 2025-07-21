@@ -1,6 +1,7 @@
 "use client";
 
 import BrowseCategoriesSection from "@/components/home/BrowseCategoriesSection";
+import FeaturedProductsSection from "@/components/home/FeaturedProductsSection";
 import HeroSection from "@/components/home/HeroSection";
 import QuickStatsSection from "@/components/home/QuickStatsSection";
 import React from "react";
@@ -15,6 +16,8 @@ export default function HomePage() {
         <QuickStatsSection />
         {/** Browse Categories Section */}
         <BrowseCategoriesSection />
+        {/** Featured Products Section */}
+        <FeaturedProductsSection />
       </main>
     </div>
   );
