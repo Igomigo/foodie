@@ -10,7 +10,11 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@radix-ui/react-tabs": "^1.1.12",
     "axios": "^1.9.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "lucide-react": "^0.514.0",
     "next": "15.3.3",
     "react": "^19.0.0",
@@ -18,14 +22,17 @@
     "react-hook-form": "^7.56.4",
     "react-hot-toast": "^2.5.2",
     "react-phone-input-2": "^2.15.1",
+    "tailwind-merge": "^3.3.1",
     "zod": "^3.25.42"
   },
   "devDependencies": {
+    "@shadcn/ui": "^0.0.4",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "tailwindcss": "^4",
+    "tw-animate-css": "^1.3.5",
     "typescript": "^5"
   }
 }
