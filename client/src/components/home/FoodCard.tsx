@@ -45,7 +45,7 @@ export default function FoodCard({
         )}
         <Button
           size={"icon"}
-          className="absolute top-3 right-3 bg-white/90 hover:bg-white text-gray-700 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="absolute top-3 right-3 bg-white/90 hover:bg-white hover:shadow-md text-gray-700 opacity-0 group-hover:opacity-100 transition-opacity"
         >
           <Plus className="w-4 h-4" />
         </Button>
@@ -57,7 +57,7 @@ export default function FoodCard({
             <p className="text-orange-500 font-bold">₦{price}</p>
           </div>
           <p className="text-sm text-gray-500">{restaurant}</p>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <div className="flex items-center gap-1">
               <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
               <span className="text-sm text-gray-500">{rating}</span>
@@ -75,7 +75,7 @@ export default function FoodCard({
             {tags.map((tag) => (
               <Badge
                 variant={"secondary"}
-                className="font-bold"
+                className="font-semibold"
                 key={tag}
               >
                 {tag}

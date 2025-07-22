@@ -337,9 +337,9 @@ export default function LandingPage() {
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">FC</span>
+                  <span className="text-white font-bold text-sm">FO</span>
                 </div>
-                <span className="text-xl font-bold">FlavourCompass</span>
+                <span className="text-xl font-bold">Foodie</span>
               </div>
               <p className="text-gray-400">
                 Connecting food lovers with authentic African cuisine through AI-powered discovery.
@@ -411,7 +411,7 @@ export default function LandingPage() {
           </div>
 
           <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 FlavourCompass. All rights reserved.</p>
+            <p>&copy; 2025 Foodie. All rights reserved.</p>
           </div>
         </div>
       </footer>
