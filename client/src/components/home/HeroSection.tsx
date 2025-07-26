@@ -51,7 +51,7 @@ export default function HeroSection() {
     >
       <div className="flex flex-col">
         <h1 className="text-2xl font-bold mb-2">
-          Hello, {isLoading ? "..." : userData?.username}! <span>👋</span>
+          Hello, {isLoading ? "..." : userData?.username || "User"}! <span>👋</span>
         </h1>
         <p className="text-orange-100 mb-4">
           What delicious African cuisine are you craving today?

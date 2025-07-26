@@ -6,9 +6,18 @@ import {
   DialogTitle,
   DialogClose,
 } from "./ui/dialog";
-import { Card, CardContent } from "./ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Sparkles } from "lucide-react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import { Button } from "./ui/button";
+
+// Chat Suggestions
+const chatSuggestions = [
+  "I want to eat rice and beans in Vi, Lagos?",
+  "What foods are available in my location?",
+  "What vendors sell rice in my location?",
+];
 
 // Chat History
 const chatHistory = [
@@ -40,16 +49,48 @@ export default function AIChatModal({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-red-500 max-w-4xl w-full">
-        <Card className="border-none bg-blue-500">
-          <CardContent className="p-0 border-none bg-green-500">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
+      <DialogContent className="max-w-4xl p-0">
+        <Card className="border-white w-full">
+          <CardHeader>
+            <CardTitle>
+              <div className="flex items-center gap-2">
                 <Sparkles className="w-6 h-6 text-orange-500" />
-                <span>AI Food Assistant</span>
-                <Badge>AI Assistant</Badge>
-              </DialogTitle>
-            </DialogHeader>
+                <h2 className="text-xl font-bold">Foodie AI</h2>
+                <Badge variant={"secondary"}>AI Assistant</Badge>
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="">
+            <div className="flex flex-col gap-4">
+              <div className="bg-gray-200 w-full px-4 py-2 rounded-lg">
+                <span className="text-sm">
+                  Hi! I'm your AI food assistant. I can help you find the
+                  perfect African dishes based on your mood, location, and
+                  preferences. What are you craving today?
+                </span>
+              </div>
+              {/** Chat Suggestions */}
+              <div className="flex items-center gap-2">
+                {chatSuggestions.map((suggestion) => (
+                  <Button
+                    className="text-xs rounded-full hover:ring-4 hover:ring-offset-1 hover:ring-gray-400"
+                    key={suggestion}
+                  >
+                    {suggestion}
+                  </Button>
+                ))}
+              </div>
+              {/** Chat container */}
+              <div className="">
+                <div></div>
+              </div>
+            </div>
+            {/* <DotLottieReact
+              src="https://lottie.host/656889b5-09ae-40c6-9a76-ada6e367d02c/MXWWG6jO7B.lottie"
+              loop
+              autoplay
+              className="w-20 h-10"
+            /> */}
           </CardContent>
         </Card>
       </DialogContent>

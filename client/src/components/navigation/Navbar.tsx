@@ -101,7 +101,7 @@ export default function Navbar() {
       </nav>
       
       {/** AI Premium Section */}
-      <div className="p-2 pb-4 flex flex-col">
+      <div className="p-3 pb-4 flex flex-col">
         <div className="p-3 bg-gradient-to-r from-orange-400 to-orange-600 text-white rounded-lg space-y-2">
           <div className="flex items-center space-x-2">
             <Sparkles className="w-6 h-6" />
