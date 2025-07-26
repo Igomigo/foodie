@@ -7,7 +7,7 @@ import FoodCard from "./FoodCard";
 
 const featuredDishes = [
   {
-    id: "1",
+    _id: "1",
     name: "Jollof Rice with Grilled Chicken",
     restaurant: "Mama's Kitchen",
     image: "/images/big-fish-white-rice.jpeg",
@@ -19,7 +19,7 @@ const featuredDishes = [
     isPopular: true,
   },
   {
-    id: "2",
+    _id: "2",
     name: "Amala with Ewedu & Gbegiri",
     restaurant: "Yoruba Delights",
     image: "/images/eba-and-egusi-soup.jpeg",
@@ -30,7 +30,7 @@ const featuredDishes = [
     tags: ["Traditional", "Healthy"],
   },
   {
-    id: "3",
+    _id: "3",
     name: "Pepper Soup with Catfish",
     restaurant: "Spice Garden",
     image: "/images/Ofada Rice and Sauce.jpeg",
@@ -41,7 +41,7 @@ const featuredDishes = [
     tags: ["Spicy", "Protein-rich"],
   },
   {
-    id: "4",
+    _id: "4",
     name: "Egusi Soup with Pounded Yam",
     restaurant: "Heritage Foods",
     image: "/images/eba-and-egusi-soup.jpeg",
@@ -69,22 +69,46 @@ export default function FeaturedProductsSection() {
         <CardContent>
           <Tabs defaultValue="Popular" className="w-full">
             <TabsList className="w-full h-12 p-2">
-              <TabsTrigger value="Popular" className="text-gray-600 font-semibold focus:text-black">Popular</TabsTrigger>
-              <TabsTrigger value="Nearby" className="text-gray-600 font-semibold focus:text-black">Nearby</TabsTrigger>
-              <TabsTrigger value="AI Picks" className="text-gray-600 font-semibold focus:text-black">AI Picks</TabsTrigger>
+              <TabsTrigger
+                value="Popular"
+                className="text-gray-600 font-semibold focus:text-black"
+              >
+                Popular
+              </TabsTrigger>
+              <TabsTrigger
+                value="Nearby"
+                className="text-gray-600 font-semibold focus:text-black"
+              >
+                Nearby
+              </TabsTrigger>
+              <TabsTrigger
+                value="AI Picks"
+                className="text-gray-600 font-semibold focus:text-black"
+              >
+                AI Picks
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="Popular" className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {featuredDishes.map(dish => (
-                  <FoodCard
-                    key={dish.id}
-                    {...dish}
-                  />
+                {featuredDishes.map((dish) => (
+                  <FoodCard key={dish._id} {...dish} />
                 ))}
               </div>
             </TabsContent>
-            <TabsContent value="Nearby">Nearby</TabsContent>
-            <TabsContent value="AI Picks">AI Picks</TabsContent>
+            <TabsContent value="Nearby" className="mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {featuredDishes.slice(0, 3).map((dish) => (
+                  <FoodCard key={dish._id} {...dish} />
+                ))}
+              </div>
+            </TabsContent>
+            <TabsContent value="AI Picks" className="mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {featuredDishes.slice(1).map((dish) => (
+                  <FoodCard key={dish._id} {...dish} />
+                ))}
+              </div>
+            </TabsContent>
           </Tabs>
         </CardContent>
       </Card>

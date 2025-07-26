@@ -11,6 +11,7 @@ export class AIRoute {
   }
 
   private initializeRoutes(this: any) {
+    // /api/v1/ai/chat
     this.router.post("/chat", (req: Request, res: Response) =>
       this.aiController.chat(req, res)
     );
