@@ -1,5 +1,5 @@
 import React from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Badge } from "./ui/badge";
 import { Bot } from "lucide-react";
 import {
@@ -174,15 +174,22 @@ export default function AIChatModal({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-fit m-3">
-        <DialogHeader className="border-b border-orange-500 pb-4">
+      <DialogContent className="max-w-4xl max-h-[90vh] m-3">
+        <DialogHeader className=" border-orange-500">
           <DialogTitle>
             <div className="flex items-center gap-2">
-              <Bot className="text-orange-500 w-6 h-6" />
-              <h2 className="text-xl font-bold">Foodie AI</h2>
+              <Bot className="text-orange-500" size={40} />
+              <h2 className="text-2xl text-orange-500 font-semibold">Sofia</h2>
               <Badge variant={"secondary"}>AI Assistant</Badge>
             </div>
           </DialogTitle>
+          <DialogDescription className="bg-orange-500 p-4 rounded-lg">
+            <p className="text-sm text-white">
+              Hi! I'm your AI food assistant. I can help you find the perfect
+              African dishes based on your mood, location, and preferences. What
+              are you craving today?
+            </p>
+          </DialogDescription>
         </DialogHeader>
         <AISuggestions>
           {chatSuggestions.map((suggestion) => (
@@ -193,7 +200,7 @@ export default function AIChatModal({
             />
           ))}
         </AISuggestions>
-        <AIConversation className="overflow-y-auto max-h-[60vh] scrollbar">
+        <AIConversation className="overflow-y-auto max-h-[50vh] scrollbar">
           <AIConversationContent>
             {chatHistory.map((chat, index) => (
               <div key={index}>
@@ -203,8 +210,8 @@ export default function AIChatModal({
                       {chat.role === "assistant" && (
                         <AIMessageAvatar src={chat.avatar} name={chat.role} />
                       )}
-                      <AIMessageContent>
-                        <p className={`text-sm $`}>{chat.content}</p>
+                      <AIMessageContent className={`${chat.role === "user" ? "bg-orange-500" : "text-black"}`}>
+                        <p>{chat.content}</p>
                       </AIMessageContent>
                       {chat.role === "user" && (
                         <AIMessageAvatar src={chat.avatar} name={chat.role} />
