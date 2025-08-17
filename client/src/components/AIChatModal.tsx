@@ -49,31 +49,31 @@ export default function AIChatModal({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl p-0">
+      <DialogContent className="max-w-4xl p-0 m-3">
         <Card className="border-white w-full">
           <CardHeader>
-            <CardTitle>
+            <DialogTitle>
               <div className="flex items-center gap-2">
                 <Sparkles className="w-6 h-6 text-orange-500" />
                 <h2 className="text-xl font-bold">Foodie AI</h2>
                 <Badge variant={"secondary"}>AI Assistant</Badge>
               </div>
-            </CardTitle>
+            </DialogTitle>
           </CardHeader>
-          <CardContent className="">
-            <div className="flex flex-col gap-4">
-              <div className="bg-gray-200 w-full px-4 py-2 rounded-lg">
-                <span className="text-sm">
+          <CardContent>
+            <div className="flex flex-col gap-4 pb-4">
+              <div className="bg-gray-300 w-full px-4 py-2 rounded-lg">
+                <p className="text-sm">
                   Hi! I'm your AI food assistant. I can help you find the
                   perfect African dishes based on your mood, location, and
                   preferences. What are you craving today?
-                </span>
+                </p>
               </div>
               {/** Chat Suggestions */}
               <div className="flex items-center gap-2">
                 {chatSuggestions.map((suggestion) => (
                   <Button
-                    className="text-xs rounded-full hover:ring-4 hover:ring-offset-1 hover:ring-gray-400"
+                    className="text-xs rounded-full hover:ring-4 hover:ring-offset-1 hover:ring-gray-300"
                     key={suggestion}
                   >
                     {suggestion}
@@ -81,7 +81,7 @@ export default function AIChatModal({
                 ))}
               </div>
               {/** Chat container */}
-              <div className="">
+              <div className="flex flex-col gap-4">
                 <div></div>
               </div>
             </div>

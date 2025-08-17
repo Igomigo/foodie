@@ -1,4 +1,9 @@
-import { getModelForClass, ModelOptions, Prop, Severity } from "@typegoose/typegoose";
+import {
+  getModelForClass,
+  ModelOptions,
+  Prop,
+  Severity,
+} from "@typegoose/typegoose";
 import mongoose from "mongoose";
 
 /**

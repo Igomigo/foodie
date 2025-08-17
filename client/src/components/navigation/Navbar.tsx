@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
+import { LiquidButton } from "../ui/shadcn-io/liquid-button";
 
 const menuItems = [
   {
@@ -110,9 +111,7 @@ export default function Navbar() {
           <p className="text-xs">
             Unlock advanced AI recommendations and exclusive deals
           </p>
-          <button className="bg-white hover:bg-orange-50 text-orange-500 rounded-lg px-4 py-2 w-full">
-            <p className="text-sm font-semibold">Upgrade Now</p>
-          </button>
+          <LiquidButton className="w-full [--liquid-button-color:#ea580c]">Upgrade Now</LiquidButton>
         </div>
       </div>
     </div>
