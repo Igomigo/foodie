@@ -3,8 +3,6 @@
 import AIChatModal from "@/components/AIChatModal";
 import Sidebar from "@/components/navigation/Sidebar";
 import Topbar from "@/components/navigation/Topbar";
-import { Sparkles } from "lucide-react";
-import Image from "next/image";
 import React, { useState } from "react";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
