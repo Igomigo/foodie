@@ -73,7 +73,7 @@ export default function SignupPage() {
         <div className="text-center gap-2 mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
           <p className="text-sm sm:text-base text-gray-600">
-            Join <span className="text-orange-500 font-bold">FlavourCompass</span> to discover amazing food experiences
+            Join <span className="text-orange-500 font-bold">Foodie</span> to discover amazing food experiences
           </p>
         </div>
         <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>

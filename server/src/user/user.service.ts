@@ -1,10 +1,9 @@
 import { Service } from "typedi";
 import { UserRepository } from "../repositories/userRepository/userRepo";
-import { User } from "./domain/user.model";
+import { User } from "../domain/user.model";
 import { Logger } from "../utils/logger";
 import { RedisService } from "../services/redisService";
 import { serviceResponse } from "../interfaces/serviceResponse";
-import { Types } from "mongoose";
 
 @Service()
 export class UserService {

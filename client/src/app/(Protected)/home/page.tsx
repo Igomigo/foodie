@@ -1,16 +1,25 @@
-import React from 'react'
+"use client";
+
+import BrowseCategoriesSection from "@/components/home/BrowseCategoriesSection";
+import FeaturedProductsSection from "@/components/home/FeaturedProductsSection";
+import HeroSection from "@/components/home/HeroSection";
+import QuickStatsSection from "@/components/home/QuickStatsSection";
+import React from "react";
 
 export default function HomePage() {
+
   return (
-    <div className='flex flex-1 bg-gray-100'>
-      <main className='flex-1 px-6 py-12 bg-white md:p-6 lg:p-8 xl:p-12'>
-        <h1 className='text-2xl font-bold'>Home</h1>
-        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.</p>
-        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.</p>
+    <div className="flex flex-col flex-1 bg-gray-100">
+      <main className="flex-1 px-4 py-8 bg-white md:px-6 md:py-8 space-y-6 scrollbar overflow-auto">
+        {/** Hero Section */}
+        <HeroSection />
+        {/** Quick Stats Section */}
+        <QuickStatsSection />
+        {/** Browse Categories Section */}
+        <BrowseCategoriesSection />
+        {/** Featured Products Section */}
+        <FeaturedProductsSection />
       </main>
-      <div className='h-48'>A high priority task</div>
-      <div className='h-48'>A high priority task</div>
-      <div className='h-48'>A high priority task</div>
     </div>
-  )
+  );
 }

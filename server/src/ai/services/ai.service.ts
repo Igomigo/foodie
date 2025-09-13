@@ -6,7 +6,7 @@ export class AIService {
     private readonly ai: GoogleGenAI;
 
     constructor() {
-        this.ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GEMINI_API_KEY });
+        this.ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
     }
 
     /**
