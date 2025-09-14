@@ -1,6 +1,0 @@
-POST http://localhost:5000/api/v1/ai/chat
-content-type: application/json
-
-{
-    "message": "I want to eat rice and chicken in ikeja"
-}

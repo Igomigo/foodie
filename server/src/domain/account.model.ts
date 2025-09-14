@@ -18,9 +18,9 @@ type Location = {
   country: string;
   state: string;
   city: string;
-  street1: string;
+  street1?: string;
   street2?: string;
-  zip: string;
+  zip?: string;
 };
 
 @ModelOptions({
@@ -54,7 +54,7 @@ class Account {
   @Prop({ type: () => Object, required: true })
   location!: Location;
 
-  @Prop({ required: true, enum: ["user", "vendor"] })
+  @Prop({ required: true, enum: ["user", "vendor", "admin"] })
   role!: string;
 
   @Prop({ required: false, default: false })
