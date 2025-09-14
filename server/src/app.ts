@@ -10,6 +10,7 @@ import cookieParser from "cookie-parser";
 import { AuthRoute } from "./auth/auth.route";
 import { UserRoute } from "./user/user.route";
 import { AIRoute } from "./ai/ai.route";
+import { corsOptions } from "./utils/corsOptions";
 
 @Service()
 export class App {
@@ -38,13 +39,7 @@ export class App {
   }
 
   private initializeMiddlewares() {
-    const allowedOrigin = process.env.CLIENT_URL;
-    this.app.use(
-      cors({
-        origin: allowedOrigin,
-        credentials: true,
-      })
-    );
+    this.app.use(cors(corsOptions));
     this.app.use(helmet());
     this.app.use(express.json());
     this.app.use(cookieParser());
