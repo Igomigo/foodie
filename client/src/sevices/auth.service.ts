@@ -8,24 +8,27 @@ import { axiosInstance, loginUser } from "@/config/axios";
  * @returns The registered user
  */
 export const signUp = async (data: SignupFormData) => {
-    try {
-        console.log("Registering user", data);
-        // Transform data to match the expected format that the server expects
-        const transformedData = {
-            ...data,
-            location: {
-                country: data.country,
-                state: data.state,
-                city: data.city
-            },
-            role: "user"
-        };
-        const response = await axiosInstance.post('/auth/signup', transformedData);
-        return response?.data;
-    } catch (error: any) {
-        throw error;
-    }
-}
+  try {
+    console.log("Registering user", data);
+    // Transform data to match the expected format that the server expects
+    const transformedData = {
+      ...data,
+      location: {
+        country: data.country,
+        state: data.state,
+        city: data.city,
+      },
+      role: "user",
+    };
+    const response = await axiosInstance.post(
+      "/auth/user-signup",
+      transformedData
+    );
+    return response?.data;
+  } catch (error: any) {
+    throw error;
+  }
+};
 
 /**
  * Login a user
@@ -33,12 +36,12 @@ export const signUp = async (data: SignupFormData) => {
  * @returns The logged in user
  */
 export const signIn = async (data: LoginFormData) => {
-    try {
-        console.log("Logging in user", data);
-        const response = await axiosInstance.post('/auth/login', data);
-        loginUser(response?.data?.data);
-        return response?.data;
-    } catch (error: any) {
-        throw error;
-    }
-}
+  try {
+    console.log("Logging in user", data);
+    const response = await axiosInstance.post("/auth/login", data);
+    loginUser(response?.data?.data);
+    return response?.data;
+  } catch (error: any) {
+    throw error;
+  }
+};

@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   mongodb:
@@ -31,17 +31,19 @@ services:
       retries: 5
 
   server:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "2000:2000"
     environment:
       - NODE_ENV=development
       - MONGODB_URI=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/${MONGO_DB}?authSource=admin
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - PORT=2000
+      - CLIENT_URL=${CLIENT_URL}
     volumes:
       - .:/app
       - /app/node_modules

@@ -38,9 +38,10 @@ export class App {
   }
 
   private initializeMiddlewares() {
+    const allowedOrigin = process.env.CLIENT_URL;
     this.app.use(
       cors({
-        origin: process.env.CLIENT_URL,
+        origin: allowedOrigin,
         credentials: true,
       })
     );

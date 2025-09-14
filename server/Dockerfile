@@ -16,7 +16,7 @@ COPY . .
 RUN npm run build
 
 # Expose port
-EXPOSE 3000
+EXPOSE 2000
 
 # Start the app with nodemon for development
 CMD ["npm", "run", "dev"]

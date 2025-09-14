@@ -10,7 +10,7 @@ export const axiosInstance = axios.create({
 
 // User and token management functions
 export const getUser = () => {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     const userStr = localStorage.getItem("user");
     return userStr ? JSON.parse(userStr) : null;
   }
@@ -46,7 +46,9 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    const originalRequest = error.config as InternalAxiosRequestConfig & {
+      _retry?: boolean;
+    };
 
     // If error is 401 and we haven't tried to refresh the token yet
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -54,7 +56,7 @@ axiosInstance.interceptors.response.use(
 
       try {
         // The refresh token is automatically sent in the cookie
-        const response = await axiosInstance.post('/auth/refresh-token');
+        const response = await axiosInstance.post("/auth/refresh-token");
         const { accessToken } = response.data;
 
         // Update the user object with new access token
@@ -63,7 +65,7 @@ axiosInstance.interceptors.response.use(
           user.accessToken = accessToken;
           localStorage.setItem("user", JSON.stringify(user));
         }
-        
+
         setAuthHeader(accessToken);
 
         // Retry the original request with the new token
@@ -87,7 +89,7 @@ axiosInstance.interceptors.response.use(
 );
 
 // Auth management functions
-export const loginUser = (userData: { 
+export const loginUser = (userData: {
   accessToken: string;
   userId: string;
   role: string;
