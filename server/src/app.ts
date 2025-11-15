@@ -7,7 +7,7 @@ import { Db } from "./config/mongo";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
-import { AuthRoute } from "./auth/auth.route";
+import { authRouter } from "./auth/auth.route";
 import { UserRoute } from "./user/user.route";
 import { AIRoute } from "./ai/ai.route";
 import { corsOptions } from "./utils/corsOptions";
@@ -23,7 +23,6 @@ export class App {
   constructor(
     private readonly baseRoute: BaseRoute,
     private readonly db: Db,
-    private readonly authRoute: AuthRoute,
     private readonly userRoute: UserRoute,
     private readonly aiRoute: AIRoute
   ) {
@@ -49,7 +48,7 @@ export class App {
 
   private initializeRoutes() {
     this.app.use(`/${this.apiVersion}`, this.baseRoute.router);
-    this.app.use(`/${this.apiVersion}/auth`, this.authRoute.router);
+    this.app.use(`/${this.apiVersion}/auth`, authRouter);
     this.app.use(`/${this.apiVersion}/users`, this.userRoute.router);
     this.app.use(`/${this.apiVersion}/ai`, this.aiRoute.router);
   }

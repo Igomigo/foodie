@@ -11,11 +11,12 @@ export const validate = (schema: Joi.ObjectSchema) => {
 
         if (error) {
             const errorMessage = error.details.map(detail => detail.message.replace(/['"]/g, "")).join(", ");
-            return response(res, 400, {
+            response(res, 400, {
                 success: false,
                 message: 'validation error',
                 errors: errorMessage
             });
+            return;
         }
 
         next();

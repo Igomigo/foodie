@@ -5,8 +5,9 @@ import Sidebar from "@/components/navigation/Sidebar";
 import Topbar from "@/components/navigation/Topbar";
 import React, { useState } from "react";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import withAuth from "@/middleware/withAuth";
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const [isAIChatModalOpen, setIsAIChatModalOpen] = useState(false);
 
   return (
@@ -44,3 +45,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
+// Protect the entire layout - this means all pages inside (Protected) folder are automatically protected!
+export default withAuth(ProtectedLayout);
