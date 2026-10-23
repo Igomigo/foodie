@@ -1,5 +1,6 @@
 import { Asterisk, Sparkles } from "lucide-react";
-import { ActionLink, Eyebrow } from "./ui";
+import BrandButton from "@/components/shared/BrandButton";
+import { Eyebrow } from "./ui";
 import Reveal from "./Reveal";
 
 export default function FinalCallToAction({
@@ -32,9 +33,9 @@ export default function FinalCallToAction({
             Just better food.
           </em>
         </h2>
-        <ActionLink href={exploreHref} variant="dark">
+        <BrandButton href={exploreHref} variant="dark">
           Oya, let’s eat
-        </ActionLink>
+        </BrandButton>
       </Reveal>
       <Asterisk
         size={130}

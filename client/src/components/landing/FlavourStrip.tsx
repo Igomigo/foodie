@@ -12,7 +12,7 @@ export default function FlavourStrip() {
         strokeWidth={1.1}
         className="shrink-0 text-foodie-orange"
       />
-      <span>CORRECT SUYA</span>
+      <span>BETTER SWALLOW</span>
       <Asterisk
         size={20}
         strokeWidth={1.1}

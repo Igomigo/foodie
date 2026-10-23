@@ -4,7 +4,8 @@ import Image from "next/image";
 import { X } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import type { Dish } from "./dishes";
-import { ActionLink, Eyebrow } from "./ui";
+import BrandButton from "@/components/shared/BrandButton";
+import { Eyebrow } from "./ui";
 
 export default function DishDialog({
   dish,
@@ -66,7 +67,9 @@ export default function DishDialog({
                     </span>
                   ))}
                 </div>
-                <ActionLink href={exploreHref}>Find food like this</ActionLink>
+                <BrandButton href={exploreHref}>
+                  Find food like this
+                </BrandButton>
                 <p className="mt-4 text-[10px] leading-relaxed text-foodie-muted">
                   A little inspiration. Menus vary by kitchen.
                 </p>

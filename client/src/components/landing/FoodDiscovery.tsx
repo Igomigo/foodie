@@ -2,13 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Utensils } from "lucide-react";
-import { useReducedMotion } from "motion/react";
+import { useMotionValue, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { dishes, foodCategories, type Dish, type FoodCategory } from "./dishes";
 import DishCard from "./DishCard";
 import DishDialog from "./DishDialog";
 import Reveal from "./Reveal";
 import { Eyebrow } from "./ui";
+import CravingProgress from "./CravingProgress";
 
 export default function FoodDiscovery({
   exploreHref,
@@ -17,7 +18,13 @@ export default function FoodDiscovery({
 }) {
   const [category, setCategory] = useState<FoodCategory>("All cravings");
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
-  const [canScroll, setCanScroll] = useState({ previous: false, next: true });
+  const [canScroll, setCanScroll] = useState({
+    previous: false,
+    next: true,
+    first: 1,
+    last: 1,
+  });
+  const progress = useMotionValue(0);
   const track = useRef<HTMLDivElement>(null);
   const dishTrigger = useRef<HTMLButtonElement | null>(null);
   const reducedMotion = useReducedMotion();
@@ -28,12 +35,33 @@ export default function FoodDiscovery({
   function updateScroll() {
     const element = track.current;
     if (!element) return;
+    const cards = Array.from(element.children) as HTMLElement[];
+    const left = element.getBoundingClientRect().left;
+    const visible = cards.flatMap((card, index) => {
+      const bounds = card.getBoundingClientRect();
+      // Count cards with at least half their width in view.
+      const overlap =
+        Math.min(bounds.right, left + element.clientWidth) -
+        Math.max(bounds.left, left);
+      return overlap >= bounds.width / 2 ? [index + 1] : [];
+    });
+    const maxScroll = element.scrollWidth - element.clientWidth;
+    progress.set(
+      maxScroll > 0
+        ? Math.max(0, Math.min(1, element.scrollLeft / maxScroll))
+        : 1,
+    );
     const next = {
       previous: element.scrollLeft > 4,
       next: element.scrollLeft + element.clientWidth < element.scrollWidth - 4,
+      first: visible[0] ?? 1,
+      last: visible.at(-1) ?? 1,
     };
     setCanScroll((current) =>
-      current.previous === next.previous && current.next === next.next
+      current.previous === next.previous &&
+      current.next === next.next &&
+      current.first === next.first &&
+      current.last === next.last
         ? current
         : next,
     );
@@ -117,6 +145,15 @@ export default function FoodDiscovery({
         in {category.toLowerCase()}.
       </p>
       <div
+        aria-hidden="true"
+        className="mb-2 flex items-center justify-between text-[9px] font-medium tracking-[.16em] text-foodie-muted uppercase"
+      >
+        <span>The craving edit</span>
+        <span className="flex items-center gap-2">
+          Swipe. Find your thing. <ArrowRight size={13} />
+        </span>
+      </div>
+      <div
         ref={track}
         id="food-inspiration"
         role="region"
@@ -131,12 +168,13 @@ export default function FoodDiscovery({
           }
         }}
         onScroll={updateScroll}
-        className="flex snap-x snap-proximity gap-5 overflow-x-auto overscroll-x-contain rounded-[22px] pb-4 [scrollbar-width:none] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-foodie-action sm:gap-6 [&::-webkit-scrollbar]:hidden"
+        className="flex snap-x snap-proximity gap-5 overflow-x-auto overscroll-x-contain px-1 pt-3 pb-6 [scrollbar-width:none] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-foodie-action sm:gap-6 [&::-webkit-scrollbar]:hidden"
       >
-        {visibleDishes.map((dish) => (
+        {visibleDishes.map((dish, index) => (
           <DishCard
             key={dish.id}
             dish={dish}
+            index={index}
             onOpen={(selected, trigger) => {
               dishTrigger.current = trigger;
               setSelectedDish(selected);
@@ -144,17 +182,23 @@ export default function FoodDiscovery({
           />
         ))}
       </div>
+      <CravingProgress
+        first={canScroll.first}
+        last={canScroll.last}
+        total={visibleDishes.length}
+        progress={progress}
+      />
 
-      <div className="mt-5 flex items-center justify-between gap-5 border-t border-foodie-line pt-5">
+      <div className="mt-5 flex items-center justify-between gap-5">
         <div>
-          <p className="text-[11px] font-medium">
+          {/* <p className="text-[11px] font-medium">
             {visibleDishes.length}{" "}
             {visibleDishes.length === 1 ? "craving" : "cravings"}. Plenty of
             possibilities.
           </p>
           <p className="mt-1 text-[10px] text-foodie-muted">
             Food inspiration. Actual menus vary by kitchen.
-          </p>
+          </p> */}
         </div>
         <div className="flex shrink-0 gap-2">
           <button

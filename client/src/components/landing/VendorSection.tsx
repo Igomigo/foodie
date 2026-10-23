@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Asterisk } from "lucide-react";
-import { ActionLink, Eyebrow } from "./ui";
+import BrandButton from "@/components/shared/BrandButton";
+import { Eyebrow } from "./ui";
 import Reveal from "./Reveal";
 
 export default function VendorSection() {
@@ -51,13 +52,13 @@ export default function VendorSection() {
           You bring the flavour. We’ll help more people find it. Give your
           kitchen a home on Foodie.
         </p>
-        <ActionLink
+        <BrandButton
           href="/auth/vendor-signup"
           variant="outline"
           className="mt-7 gap-4 text-[11px]"
         >
           Bring your kitchen to Foodie
-        </ActionLink>
+        </BrandButton>
       </Reveal>
     </section>
   );

@@ -1,5 +1,6 @@
 import { Flame, Heart, MapPin } from "lucide-react";
-import { ActionLink, Eyebrow } from "./ui";
+import BrandButton from "@/components/shared/BrandButton";
+import { Eyebrow } from "./ui";
 import Reveal from "./Reveal";
 
 const steps = [
@@ -50,9 +51,9 @@ export default function HowItWorks({ exploreHref }: { exploreHref: string }) {
             <br />
             And the “I know exactly what I want” ones.
           </p>
-          <ActionLink href={exploreHref} variant="light" className="mt-8">
+          <BrandButton href={exploreHref} variant="light" className="mt-8">
             Follow your craving
-          </ActionLink>
+          </BrandButton>
           <svg
             aria-hidden="true"
             viewBox="0 0 180 80"

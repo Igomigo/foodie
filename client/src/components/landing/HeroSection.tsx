@@ -1,4 +1,3 @@
-import Image from "next/image";
 import {
   ArrowDown,
   ArrowDownRight,
@@ -7,8 +6,10 @@ import {
   Heart,
   MapPin,
 } from "lucide-react";
-import { ActionLink, Eyebrow } from "./ui";
+import BrandButton from "@/components/shared/BrandButton";
+import { Eyebrow } from "./ui";
 import Reveal from "./Reveal";
+import HeroBowl from "./HeroBowl";
 
 export default function HeroSection({ exploreHref }: { exploreHref: string }) {
   return (
@@ -37,11 +38,11 @@ export default function HeroSection({ exploreHref }: { exploreHref: string }) {
           </span>
         </h1>
         <p className="max-w-[355px] text-[13px] leading-[1.9] text-foodie-muted lg:text-sm">
-          Smoky party jollof. A proper bowl of egusi. That suya craving. Find
-          the food that feels like home.
+          Party jollof. Amala and ewedu. Suya with extra yaji. Discover kitchens
+          around you and find your next favourite meal on Foodie.
         </p>
         <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-5">
-          <ActionLink href={exploreHref}>Find my next meal</ActionLink>
+          <BrandButton href={exploreHref}>Find my next meal</BrandButton>
           <a
             href="#cravings"
             className="group inline-flex min-h-11 items-center gap-2 text-[11px] font-medium"
@@ -69,7 +70,7 @@ export default function HeroSection({ exploreHref }: { exploreHref: string }) {
       </Reveal>
 
       <Reveal
-        className="relative mx-auto mt-3 aspect-square w-full max-w-[540px] md:mt-0 md:max-w-none"
+        className="group/bowl relative mx-auto mt-3 aspect-square w-full max-w-[540px] md:mt-0 md:max-w-none"
         delay={0.12}
       >
         <div
@@ -85,15 +86,7 @@ export default function HeroSection({ exploreHref }: { exploreHref: string }) {
           className="absolute top-[3%] -left-[1%] size-12 rotate-12 text-[#505d40] lg:size-16"
           strokeWidth={1.1}
         />
-        <Image
-          src="/images/landing-jollof.png"
-          alt="Nigerian jollof rice with grilled chicken and golden dodo in a ceramic bowl"
-          width={1100}
-          height={1100}
-          sizes="(max-width: 767px) 100vw, (max-width: 1100px) 52vw, 650px"
-          priority
-          className="absolute -top-[3%] -left-[2%] h-auto w-[108%] max-w-none -rotate-[9deg] drop-shadow-[0_22px_19px_#3c241a28]"
-        />
+        <HeroBowl />
         <div
           aria-hidden="true"
           className="absolute top-0 right-0 z-10 flex size-[86px] rotate-12 flex-col items-center justify-center gap-1.5 rounded-full bg-foodie-forest text-foodie-paper outline outline-offset-[-8px] outline-dashed outline-foodie-paper/40 lg:size-[106px]"

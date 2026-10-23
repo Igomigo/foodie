@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, ArrowUpRight, Menu, X } from "lucide-react";
 import Brand from "@/components/Brand";
-import { ActionLink } from "./ui";
+import BrandButton from "@/components/shared/BrandButton";
 
 const navigation = [
   { label: "Find your next chop", href: "#cravings" },
@@ -59,13 +59,14 @@ export default function LandingHeader({
           >
             {isLoggedIn ? "My account" : "Log in"}
           </Link>
-          <ActionLink
+          <BrandButton
             href={exploreHref}
             variant="outline"
-            className="min-h-11 gap-3 px-4 py-3 text-[11px] max-[360px]:hidden"
+            size="compact"
+            className="max-[360px]:hidden"
           >
             Oya, let’s eat
-          </ActionLink>
+          </BrandButton>
           <button
             ref={menuTrigger}
             type="button"
