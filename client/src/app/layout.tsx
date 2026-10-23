@@ -4,19 +4,19 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 
 const inter = Inter({
-  subsets: ["latin"]
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Foodie - Discover Amazing African Cuisine Near You",
+  title: "Foodie — Wetin you wan chop?",
   description:
-    "AI-powered platform connecting food lovers with authentic African dishes and trusted vendors. Find jollof rice, amala, egusi, and more in your area.",
+    "Smoky party jollof, proper egusi, and your next suya craving. Discover Nigerian food and local kitchens that feel like home with Foodie.",
   keywords:
-    "African food, jollof rice, amala, egusi, food delivery, AI food discovery, African cuisine, food vendors",
+    "Foodie, Nigerian food, jollof rice, suya, ofada, egusi, small chops, local kitchens, food discovery",
   openGraph: {
-    title: "Foodie - Discover Amazing African Cuisine",
+    title: "Foodie — Wetin you wan chop?",
     description:
-      "AI-powered platform for discovering authentic African dishes near you",
+      "Our food. Our people. Find your next favourite meal with Foodie.",
     type: "website",
   },
 };

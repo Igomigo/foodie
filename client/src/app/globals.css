@@ -3,6 +3,18 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@theme {
+  --color-foodie-paper: #f8f6f0;
+  --color-foodie-ink: #24291f;
+  --color-foodie-orange: #ed5c35;
+  --color-foodie-action: #c74724;
+  --color-foodie-muted: #6b6f60;
+  --color-foodie-line: #dddfd3;
+  --color-foodie-forest: #263c31;
+  --color-foodie-sage: #dceaa8;
+  --font-foodie-display: Georgia, "Times New Roman", serif;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -173,7 +185,8 @@ html {
 .phone-input-container .react-tel-input .country-list {
   border-radius: 8px !important;
   border: 1px solid #d1d5db !important;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
     0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
   max-height: 200px !important;
   z-index: 50 !important;
@@ -256,4 +269,10 @@ html {
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none; /* Chrome, Safari and Opera */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
