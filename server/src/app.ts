@@ -1,72 +1,33 @@
-import "reflect-metadata";
 import express from "express";
-import { Service } from "typedi";
 import morgan from "morgan";
-import { BaseRoute } from "./base/base.route";
-import { Db } from "./config/mongo";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
+import { createBaseRouter } from "./base/base.route";
 import { authRouter } from "./auth/auth.route";
-import { UserRoute } from "./user/user.route";
-import { AIRoute } from "./ai/ai.route";
-import { corsOptions } from "./utils/corsOptions";
+import { userRouter } from "./user/user.route";
+import { aiRouter } from "./ai/ai.route";
+import { createCorsOptions } from "./utils/corsOptions";
+import { errorHandler } from "./middleware/errorHandler";
+import { response } from "./interfaces/apiResponse";
 
-@Service()
-export class App {
-  private readonly apiVersion: string = "api/v1";
-  private readonly port: number = process.env.PORT
-    ? parseInt(process.env.PORT)
-    : 2000;
-  private readonly app: express.Application;
+export function createApp() {
+  const app = express();
+  app.disable("x-powered-by");
+  app.use(cors(createCorsOptions()));
+  app.use(helmet());
+  app.use(express.json({ limit: "100kb" }));
+  app.use(cookieParser());
+  app.use(express.urlencoded({ extended: true, limit: "100kb" }));
+  if (process.env.NODE_ENV !== "test") app.use(morgan("dev"));
 
-  constructor(
-    private readonly baseRoute: BaseRoute,
-    private readonly db: Db,
-    private readonly userRoute: UserRoute,
-    private readonly aiRoute: AIRoute
-  ) {
-    this.app = express();
-    this.connectToDatabase();
-    this.initializeMiddlewares();
-    this.initializeRoutes();
-    this.handleGracefulShutdown();
-  }
-
-  private async connectToDatabase() {
-    this.db.connect();
-  }
-
-  private initializeMiddlewares() {
-    this.app.use(cors(corsOptions));
-    this.app.use(helmet());
-    this.app.use(express.json());
-    this.app.use(cookieParser());
-    this.app.use(express.urlencoded({ extended: true }));
-    this.app.use(morgan("dev"));
-  }
-
-  private initializeRoutes() {
-    this.app.use(`/${this.apiVersion}`, this.baseRoute.router);
-    this.app.use(`/${this.apiVersion}/auth`, authRouter);
-    this.app.use(`/${this.apiVersion}/users`, this.userRoute.router);
-    this.app.use(`/${this.apiVersion}/ai`, this.aiRoute.router);
-  }
-
-  public start() {
-    this.app.listen(this.port, () => {
-      console.log(`Server is running on port ${this.port}`);
-    });
-  }
-
-  private async handleGracefulShutdown() {
-    process.on("SIGINT", async () => {
-      await this.db.disconnect();
-      process.exit(0);
-    });
-    process.on("SIGTERM", async () => {
-      await this.db.disconnect();
-      process.exit(0);
-    });
-  }
+  app.use("/api/v1", createBaseRouter());
+  app.use("/api/v1/auth", authRouter);
+  app.use("/api/v1/users", userRouter);
+  app.use("/api/v1/ai", aiRouter);
+  app.use((_req, res) =>
+    response(res, 404, { success: false, message: "Route not found" }),
+  );
+  app.use(errorHandler);
+  return app;
 }

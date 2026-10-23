@@ -1,20 +1,17 @@
+import { ClientSession } from "mongoose";
 import { Vendor, VendorModel } from "../../domain/vendor.model";
-import { BaseRepository } from "../baseRepository";
-import { IVendorRepository } from "./IvendorRepo";
-import { Service } from "typedi";
 
-@Service()
-export class VendorRepository
-  extends BaseRepository<Vendor>
-  implements IVendorRepository
-{
-  constructor() {
-    super(VendorModel);
-  }
+type NewVendor = Pick<
+  Vendor,
+  "ownerId" | "businessName" | "address" | "businessPhone"
+>;
 
-  public async findByBusinessName(
-    businessName: string
-  ): Promise<Vendor | null> {
-    return this.model.findOne({ businessName });
-  }
-}
+export const vendorRepository = {
+  async create(data: NewVendor, session: ClientSession) {
+    const vendor = new VendorModel(data);
+    return vendor.save({ session });
+  },
+  findByOwnerId(ownerId: string, session: ClientSession) {
+    return VendorModel.findOne({ ownerId }).session(session).exec();
+  },
+};

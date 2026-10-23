@@ -1,29 +1,62 @@
-import { getDiscriminatorModelForClass, Prop } from "@typegoose/typegoose";
-import { Account, AccountModel } from "./account.model";
-import mongoose from "mongoose";
+import { HydratedDocument, model, Schema, Types } from "mongoose";
+import { Location, locationSchema } from "./location.schema";
 
-class User extends Account {
-  @Prop({ required: false })
+export type Role = "user" | "vendor" | "admin";
+
+export interface User {
+  _id: Types.ObjectId;
+  email: string;
+  passwordHash: string;
+  username?: string;
   firstName?: string;
-
-  @Prop({ required: false })
   lastName?: string;
-
-  @Prop({
-    type: [mongoose.Types.ObjectId],
-    ref: () => Account,
-    required: false,
-  })
-  favouriteVendors?: mongoose.Types.ObjectId[];
-
-  @Prop({
-    type: [mongoose.Types.ObjectId],
-    ref: () => "MenuItem", // TODO: change to MenuItem
-    required: false,
-  })
-  favouriteFoods?: mongoose.Types.ObjectId[];
+  phoneNumber?: string;
+  profilePicture?: string;
+  location?: Location;
+  roles: Role[];
+  isActive: boolean;
+  favouriteVendors: Types.ObjectId[];
+  favouriteFoods: Types.ObjectId[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const UserModel = getDiscriminatorModelForClass(AccountModel, User, "user");
+const userSchema = new Schema<User>(
+  {
+    email: {
+      type: String,
+      required: true,
+      lowercase: true,
+      trim: true,
+      unique: true,
+    },
+    passwordHash: { type: String, required: true, select: false },
+    username: { type: String, trim: true },
+    firstName: { type: String, trim: true },
+    lastName: { type: String, trim: true },
+    phoneNumber: { type: String, trim: true },
+    profilePicture: String,
+    location: locationSchema,
+    roles: {
+      type: [String],
+      enum: ["user", "vendor", "admin"],
+      default: ["user"],
+      validate: (roles: Role[]) => roles.length > 0,
+    },
+    isActive: { type: Boolean, default: true },
+    favouriteVendors: [{ type: Schema.Types.ObjectId, ref: "Vendor" }],
+    favouriteFoods: [{ type: Schema.Types.ObjectId, ref: "MenuItem" }],
+  },
+  { timestamps: true, versionKey: false },
+);
 
-export { UserModel, User };
+userSchema.index(
+  { username: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { username: { $type: "string" } },
+  },
+);
+
+export type UserDocument = HydratedDocument<User>;
+export const UserModel = model<User>("User", userSchema);

@@ -1,35 +1,23 @@
 import mongoose from "mongoose";
-import { Service } from "typedi";
-import { Logger } from "../utils/logger";
+import { UserModel } from "../domain/user.model";
+import { VendorModel } from "../domain/vendor.model";
+import { logger } from "../utils/logger";
 
-@Service()
-export class Db {
-    constructor(private logger: Logger) {}
+export async function connectDatabase() {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) throw new Error("MONGODB_URI is not defined");
+  mongoose.set("bufferCommands", false);
+  await mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 });
+  const hello = await mongoose.connection.db!.admin().command({ hello: 1 });
+  if (!hello.setName && hello.msg !== "isdbgrid") {
+    throw new Error(
+      "MongoDB must be a replica set to support atomic vendor registration",
+    );
+  }
+  await Promise.all([UserModel.init(), VendorModel.init()]);
+  logger.info("Connected to database", "MongoDB");
+}
 
-    public async connect() {
-        const uri: any = process.env.MONGODB_URI;
-
-        if (!uri) {
-            this.logger.error("MONGO_URI is not defined", 'MongoConfig');
-            throw new Error("MONGO_URI is not defined");
-        }
-
-        try {
-            await mongoose.connect(uri);
-            this.logger.log("connected to database", 'MongoConfig');
-        } catch (error) {
-            this.logger.error("failed to connect to database", 'MongoConfig');
-            process.exit(1);
-        }
-    }
-
-    public async disconnect() {
-        try {
-            await mongoose.disconnect();
-            this.logger.log("disconnected from database", 'MongoConfig');
-        } catch (error) {
-            this.logger.error("failed to disconnect from database", 'MongoConfig');
-            process.exit(1);
-        }
-    }
+export async function disconnectDatabase() {
+  await mongoose.disconnect();
 }

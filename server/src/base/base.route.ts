@@ -1,26 +1,21 @@
-import { Service } from "typedi";
-import { BaseController } from "./base.controller";
-import { Request, Response, Router } from "express";
+import { Router } from "express";
+import Joi from "joi";
+import { baseController } from "./base.controller";
+import { validate } from "../validators/base.validator";
 
-@Service()
-export class BaseRoute {
-    public router: Router = Router();
-
-    constructor(
-        private readonly baseController: BaseController
-    ) {
-        this.initializeRoutes();
-    }
-
-    private initializeRoutes (this: any) {
-        this.router.get("/", (req: Request, res: Response) => 
-            this.baseController.greet(req, res)
-        );
-        this.router.post("/set-user", (req: Request, res: Response) =>
-            this.baseController.setUser(req, res)
-        );
-        this.router.get("/get-user/:key", (req: Request, res: Response) =>
-            this.baseController.getUser(req, res)
-        );
-    }
+export function createBaseRouter() {
+  const router = Router();
+  router.get("/", (req, res) => baseController.greet(req, res));
+  // These are development demos, not account-management endpoints.
+  if (process.env.NODE_ENV === "development") {
+    router.post(
+      "/set-user",
+      validate(Joi.object({ id: Joi.string().required() }).unknown()),
+      (req, res) => baseController.setUser(req, res),
+    );
+    router.get("/get-user/:key", (req, res) =>
+      baseController.getUser(req, res),
+    );
+  }
+  return router;
 }

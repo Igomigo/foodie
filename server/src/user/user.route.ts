@@ -1,18 +1,8 @@
-import { Request, Response, Router } from "express";
-import { Service } from "typedi";
-import { UserController } from "./user.controller";
+import { Router } from "express";
+import { authenticate } from "../middleware/authenticate";
+import { userController } from "./user.controller";
 
-@Service()
-export class UserRoute {
-    public readonly router = Router();
-    
-    constructor(
-        private readonly userController: UserController
-    ) {;
-        this.initializeRoutes();
-    }
-
-    private initializeRoutes(this: any) {
-        this.router.get("/:id", (req: Request, res: Response) => this.userController.getUserById(req, res));
-    }
-}
+export const userRouter = Router();
+userRouter.get("/:id", authenticate, (req, res) =>
+  userController.getUserById(req, res),
+);

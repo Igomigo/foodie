@@ -1,26 +1,9 @@
-import { Service } from "typedi";
-import * as bcrypt from "bcrypt";
-import { Logger } from "./logger";
+import bcrypt from "bcrypt";
 
-@Service()
-export class Bcrypt {
-  constructor(private readonly logger: Logger) {}
+export function hashPassword(password: string) {
+  return bcrypt.hash(password, 12);
+}
 
-  public async hash(password: string) {
-    try {
-      return await bcrypt.hash(password, 10);
-    } catch (error: any) {
-      this.logger.error(error.message, "Hash Password");
-      throw new Error(error.message);
-    }
-  }
-
-  public async compare(password: string, hashedPassword: string) {
-    try {
-      return await bcrypt.compare(password, hashedPassword);
-    } catch (error: any) {
-      this.logger.error(error.message, "Compare Password");
-      throw new Error(error.message);
-    }
-  }
+export function comparePassword(password: string, passwordHash: string) {
+  return bcrypt.compare(password, passwordHash);
 }

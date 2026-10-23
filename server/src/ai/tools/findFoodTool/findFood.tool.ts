@@ -1,32 +1,19 @@
-import { Tool } from "langchain/tools";
-import { FindFoodInput } from "./findFood.schema";
+import { DynamicTool } from "langchain/tools";
+import { findFoodSchema } from "./findFood.schema";
 
-class FindFoodTool extends Tool {
-  name = "findFood";
-  description =
-    "Find food by name and location. Input should be a JSON string with 'foodName' and 'location' properties.";
-
-  async _call(input: string): Promise<string> {
+export const findFoodTool = new DynamicTool({
+  name: "findFood",
+  description:
+    "Find food by name and location. Input should be a JSON string with 'foodName' and 'location' properties.",
+  async func(input: string): Promise<string> {
     try {
-      const args: FindFoodInput = JSON.parse(input);
-      const { foodName, location } = args;
-
-      // Basic validation
-      if (
-        !foodName ||
-        !location ||
-        typeof foodName !== "string" ||
-        typeof location !== "string"
-      ) {
+      const result = findFoodSchema.safeParse(JSON.parse(input));
+      if (!result.success)
         return "Error: Both foodName and location are required as strings.";
-      }
-
-      console.log(`Finding food: ${foodName} in ${location}`);
+      const { foodName, location } = result.data;
       return `Found food: ${foodName} in ${location}`;
-    } catch (error) {
+    } catch {
       return "Error: Please provide valid JSON with foodName and location properties.";
     }
-  }
-}
-
-export const findFoodTool = new FindFoodTool();
+  },
+});

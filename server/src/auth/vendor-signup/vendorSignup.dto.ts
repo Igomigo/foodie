@@ -1,16 +1,24 @@
 import Joi from "joi";
+import { Location } from "../../domain/location.schema";
+import {
+  emailSchema,
+  locationSchema,
+  passwordSchema,
+} from "../auth.validation";
+
+export interface VendorSignupInput {
+  email: string;
+  password: string;
+  businessName: string;
+  businessPhone?: string;
+  location: Location;
+}
 
 export const vendorSignupSchema = Joi.object({
-    businessName: Joi.string().required(),
-    email: Joi.string().email().required(),
-    password: Joi.string().required(),
-    location: Joi.object({
-        country: Joi.string().required(),
-        state: Joi.string().required(),
-        city: Joi.string().required(),
-        street1: Joi.string().required(),
-        street2: Joi.string().optional(),
-        zip: Joi.string().required()
-    }),
-    role: Joi.string().required().valid("vendor")
+  email: emailSchema,
+  password: passwordSchema,
+  businessName: Joi.string().trim().required(),
+  businessPhone: Joi.string().trim(),
+  location: locationSchema.required(),
+  role: Joi.string().valid("vendor"),
 });

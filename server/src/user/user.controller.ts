@@ -1,31 +1,28 @@
-import { Service } from "typedi";
-import { UserService } from "./user.service";
 import { Request, Response } from "express";
+import { isObjectIdOrHexString } from "mongoose";
 import { response } from "../interfaces/apiResponse";
-import { Logger } from "../utils/logger";
+import { httpError } from "../utils/httpError";
+import { getUserById } from "./user.service";
+import { PublicUser } from "./user.presenter";
 
-@Service()
 export class UserController {
-    constructor(
-       private readonly userService: UserService,
-       private readonly logger: Logger
-    ) {}
-
-    public async getUserById(req: Request, res: Response) {
-        try {
-            const { id } = req.params;
-            const result = await this.userService.getUserById(id);
-            return response(res, result.statusCode, {
-                success: result.statusCode === 200 ? true : false,
-                message: result.message,
-                data: result.data
-            });
-        } catch (error) {
-            this.logger.error(`Error getting user by id: ${error}`, this.getUserById.name);
-            return response(res, 500, {
-                success: false,
-                message: "Internal server error"
-            });
-        }
+  async getUserById(req: Request, res: Response) {
+    const id = req.params.id as string;
+    if (!isObjectIdOrHexString(id)) throw httpError(400, "Invalid user ID");
+    const currentUser: PublicUser = res.locals.user;
+    if (
+      currentUser.userId !== id.toLowerCase() &&
+      !currentUser.roles.includes("admin")
+    ) {
+      throw httpError(403, "You cannot access this user");
     }
+    const user = await getUserById(id);
+    return response(res, 200, {
+      success: true,
+      message: "User found",
+      data: user,
+    });
+  }
 }
+
+export const userController = new UserController();

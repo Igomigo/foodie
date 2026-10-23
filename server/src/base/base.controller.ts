@@ -1,31 +1,30 @@
-import { Service } from "typedi";
-import { BaseService } from "./base.service";
 import { Request, Response } from "express";
 import { response } from "../interfaces/apiResponse";
-import { Logger } from "../utils/logger";
+import { setDemoUser, getDemoUser } from "./base.service";
 
-@Service()
 export class BaseController {
-    constructor(
-        private readonly baseService: BaseService,
-        private readonly logger: Logger
-    ) {}
-
-    public async greet(req: Request, res: Response) {
-        const message = await this.baseService.greet();
-        this.logger.log(message, this);
-        return response(res, 200, {success: true, message: message});
-    }
-
-    public async setUser(req: Request, res: Response) {
-        const user = req.body;
-        const result = await this.baseService.setUser(user);
-        return response(res, 201, {success: true, message: "User set successfully", data: result});
-    }
-
-    public async getUser(req: Request, res: Response) {
-        const key = req.params.key;
-        const result = await this.baseService.getUser(key);
-        return response(res, 200, {success: true, message: "User fetched successfully", data: result});
-    }
+  greet(_req: Request, res: Response) {
+    return response(res, 200, {
+      success: true,
+      message: "Hello World, welcome to flavourCompass",
+    });
+  }
+  async setUser(req: Request, res: Response) {
+    await setDemoUser(req.body);
+    return response(res, 201, {
+      success: true,
+      message: "User set successfully",
+      data: req.body,
+    });
+  }
+  async getUser(req: Request, res: Response) {
+    const result = await getDemoUser(req.params.key as string);
+    return response(res, 200, {
+      success: true,
+      message: "User fetched successfully",
+      data: result,
+    });
+  }
 }
+
+export const baseController = new BaseController();

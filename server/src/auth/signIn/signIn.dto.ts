@@ -1,6 +1,12 @@
 import Joi from "joi";
+import { emailSchema, passwordSchema } from "../auth.validation";
+
+export interface LoginInput {
+  email: string;
+  password: string;
+}
 
 export const SignInSchema = Joi.object({
-    email: Joi.string().email().required(),
-    password: Joi.string().required(),
+  email: emailSchema,
+  password: passwordSchema,
 });

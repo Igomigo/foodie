@@ -1,35 +1,48 @@
-import { Service } from "typedi";
 import jwt from "jsonwebtoken";
+import { isObjectIdOrHexString } from "mongoose";
+import { Role } from "../domain/user.model";
+import { httpError } from "./httpError";
 
-@Service()
-export class JwtService {
-    private readonly secretKey: string;
-    
-    constructor() {
-        this.secretKey = process.env.JWT_SECRET_KEY || "secret";
-    }
+interface TokenIdentity {
+  userId: string;
+  role: string;
+  roles: Role[];
+}
 
-    public async generateAccessToken(payload: any): Promise<string> {
-        try {
-            return jwt.sign(payload, this.secretKey, { expiresIn: "5m" });
-        } catch (error: any) {
-            throw new Error(error.message);
-        }
-    }
+export function getJwtSecret() {
+  const secret = process.env.JWT_SECRET_KEY;
+  if (!secret) throw new Error("JWT_SECRET_KEY is not defined");
+  return secret;
+}
 
-    public async generateRefreshToken(payload: any): Promise<string> {
-        try {
-            return jwt.sign(payload, this.secretKey, { expiresIn: "7d" });
-        } catch (error: any) {
-            throw new Error(error.message);
-        }
-    }
+export function generateAccessToken(identity: TokenIdentity) {
+  return jwt.sign({ ...identity, type: "access" }, getJwtSecret(), {
+    algorithm: "HS256",
+    expiresIn: "5m",
+  });
+}
 
-    public async verify(token: string): Promise<any> {
-        try {
-            return jwt.verify(token, this.secretKey);
-        } catch (error: any) {
-            throw new Error(error.message);
-        }
+export function generateRefreshToken(identity: TokenIdentity) {
+  return jwt.sign({ ...identity, type: "refresh" }, getJwtSecret(), {
+    algorithm: "HS256",
+    expiresIn: "7d",
+  });
+}
+
+export function verifyToken(token: string, type: "access" | "refresh"): string {
+  const secret = getJwtSecret();
+  try {
+    const payload = jwt.verify(token, secret, { algorithms: ["HS256"] });
+    if (
+      typeof payload === "string" ||
+      payload.type !== type ||
+      typeof payload.userId !== "string" ||
+      !isObjectIdOrHexString(payload.userId)
+    ) {
+      throw new Error("Invalid token payload");
     }
+    return payload.userId;
+  } catch {
+    throw httpError(401, "Token expired or invalid");
+  }
 }

@@ -1,63 +1,23 @@
-import { Service } from "typedi";
-import { Account } from "../../domain/account.model";
-import { AccountRepository } from "../../repositories/accountRepository/accountRepo";
-import { Logger } from "../../utils/logger";
-import { RedisService } from "../../services/redisService";
-import { Bcrypt } from "../../utils/bcrypt";
-import { serviceResponse } from "../../interfaces/serviceResponse";
+import { userRepository } from "../../repositories/userRepository/userRepo";
+import { publicUser } from "../../user/user.presenter";
+import { hashPassword } from "../../utils/bcrypt";
+import { httpError } from "../../utils/httpError";
+import { UserSignupInput } from "./userSignup.dto";
 
-@Service()
-export class UserSignupService {
-  constructor(
-    private readonly accountRepo: AccountRepository,
-    private readonly logger: Logger,
-    private readonly redis: RedisService,
-    private readonly bcrypt: Bcrypt
-  ) {}
-
-  public async signup(data: Account): Promise<serviceResponse<Account>> {
-    try {
-      // Check if user already exists
-      const user = await this.accountRepo.findByEmailOrUsername(
-        data.email,
-        data.username || ""
-      );
-      if (user) {
-        return {
-          statusCode: 409,
-          message: "User already exists",
-        };
-      }
-
-      // Hash password
-      const hashedPassword = await this.bcrypt.hash(data.password);
-
-      // Create new user
-      const newUser = await this.accountRepo.create({
-        ...data,
-        password: hashedPassword,
-      });
-
-      // Store the new user object in redis
-      await this.redis.set(`user:${newUser._id}`, newUser);
-
-      // Return success response
-      this.logger.info(
-        `User created successfully: ${newUser.username}`,
-        "SignupService"
-      );
-      return {
-        statusCode: 201,
-        message: "User account created successfully",
-        data: newUser,
-      };
-    } catch (error: any) {
-      this.logger.error(error.message, "SignupService");
-      return {
-        statusCode: 500,
-        message: "Failed to create user account",
-        error: error.message,
-      };
-    }
+export async function signupUser(data: UserSignupInput) {
+  if (await userRepository.findByEmailOrUsername(data.email, data.username)) {
+    throw httpError(409, "User already exists");
   }
+
+  const user = await userRepository.create({
+    email: data.email,
+    passwordHash: await hashPassword(data.password),
+    username: data.username,
+    firstName: data.firstName,
+    lastName: data.lastName,
+    phoneNumber: data.phoneNumber,
+    location: data.location,
+    roles: ["user"],
+  });
+  return publicUser(user);
 }

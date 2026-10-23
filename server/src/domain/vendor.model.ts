@@ -1,26 +1,35 @@
-import { getDiscriminatorModelForClass, Prop } from "@typegoose/typegoose";
-import { Account, AccountModel } from "./account.model";
-import mongoose from "mongoose";
+import { model, Schema, Types } from "mongoose";
+import { Location, locationSchema } from "./location.schema";
 
-class Vendor extends Account {
-  @Prop({ required: true })
-  businessName!: string;
-
-  @Prop({
-    type: [mongoose.Types.ObjectId],
-    ref: () => "MenuItem", // TODO: change to MenuItem
-    required: false,
-  })
-  menuItems?: mongoose.Types.ObjectId[];
-
-  @Prop({ required: false, default: false })
-  isApproved?: boolean;
+export interface Vendor {
+  _id: Types.ObjectId;
+  ownerId: Types.ObjectId;
+  businessName: string;
+  businessPhone?: string;
+  address: Location;
+  approvalStatus: "pending" | "approved" | "suspended";
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const VendorModel = getDiscriminatorModelForClass(
-  AccountModel,
-  Vendor,
-  "vendor"
+const vendorSchema = new Schema<Vendor>(
+  {
+    ownerId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      unique: true,
+    },
+    businessName: { type: String, required: true, trim: true },
+    businessPhone: { type: String, trim: true },
+    address: { type: locationSchema, required: true },
+    approvalStatus: {
+      type: String,
+      enum: ["pending", "approved", "suspended"],
+      default: "pending",
+    },
+  },
+  { timestamps: true, versionKey: false },
 );
 
-export { VendorModel, Vendor };
+export const VendorModel = model<Vendor>("Vendor", vendorSchema);

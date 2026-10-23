@@ -1,12 +1,12 @@
 import { Response } from "express";
 
-interface IApiResponse {
-    success: boolean,
-    message: string,
-    data?: any,
-    errors?: any
-};
+interface ApiResponse {
+  success: boolean;
+  message: string;
+  data?: unknown;
+  errors?: string | null;
+}
 
-export const response = (res: Response, status: number, data: IApiResponse) => {
-    return res.status(status).json(data);
+export function response(res: Response, status: number, data: ApiResponse) {
+  res.status(status).json(data);
 }
