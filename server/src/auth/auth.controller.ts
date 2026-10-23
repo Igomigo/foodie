@@ -5,6 +5,10 @@ import { signupVendor } from "./vendor-signup/vendor.signup.service";
 import { login } from "./signIn/signIn.service";
 import { refreshAccessToken } from "./refresh-token/refreshToken.service";
 import { httpError } from "../utils/httpError";
+import {
+  requestPasswordReset,
+  resetPassword,
+} from "./password-reset/passwordReset.service";
 
 function refreshCookieOptions(): CookieOptions {
   return {
@@ -16,6 +20,24 @@ function refreshCookieOptions(): CookieOptions {
 }
 
 export class AuthController {
+  forgotPassword(req: Request, res: Response) {
+    requestPasswordReset(req.body.email);
+    return response(res, 202, {
+      success: true,
+      message:
+        "If an account exists for this email, we’ll send a password-reset link",
+    });
+  }
+
+  async resetPassword(req: Request, res: Response) {
+    await resetPassword(req.body.token, req.body.password);
+    res.clearCookie("refreshToken", refreshCookieOptions());
+    return response(res, 200, {
+      success: true,
+      message: "Password updated. Please sign in with your new password",
+    });
+  }
+
   async userSignup(req: Request, res: Response) {
     const user = await signupUser(req.body);
     return response(res, 201, {

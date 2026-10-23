@@ -4,9 +4,10 @@ import { httpError } from "../../utils/httpError";
 import { generateAccessToken, verifyToken } from "../../utils/jwt";
 
 export async function refreshAccessToken(token: string) {
-  const userId = verifyToken(token, "refresh");
+  const { userId, tokenVersion } = verifyToken(token, "refresh");
   const user = await userRepository.findById(userId);
-  if (!user || !user.isActive) throw httpError(401, "Account is unavailable");
+  if (!user || !user.isActive || (user.tokenVersion ?? 0) !== tokenVersion)
+    throw httpError(401, "Session expired. Please sign in again");
 
   const result = publicUser(user);
   return {
@@ -14,6 +15,7 @@ export async function refreshAccessToken(token: string) {
       userId,
       role: result.role,
       roles: result.roles,
+      tokenVersion: user.tokenVersion ?? 0,
     }),
   };
 }

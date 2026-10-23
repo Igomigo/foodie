@@ -43,6 +43,20 @@ Access tokens expire after five minutes; refresh tokens after seven days. Token 
 
 Logout clears the refresh cookie. Issued tokens are stateless: copied refresh tokens are not revoked by logout, and access tokens remain usable until expiry unless the account is disabled. Per-device sessions and refresh-token rotation are future authentication work. Legacy tokens without a purpose claim require signing in again after deployment.
 
+### Password recovery
+
+Set `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, and `MAIL_FROM` in your local environment using your SMTP provider's credentials. Nodemailer uses TLS on port 465 and requires STARTTLS on other ports (normally 587). Set `CLIENT_URL` to the frontend origin; HTTPS is required in production. No credentials are committed, and no emails are sent during automated tests.
+
+- `POST /api/v1/auth/forgot-password` accepts `{ email }`. Configured requests return the same `202` message for known and unknown accounts. Missing SMTP configuration returns `503` without claiming an email was sent. Account lookup and email delivery run asynchronously in the server process; a process restart can interrupt delivery, so the user can retry. SMTP failures are logged without credentials or reset tokens.
+- `POST /api/v1/auth/reset-password` accepts `{ token, password, confirmPassword }`. Tokens contain 32 random bytes, are stored only as SHA-256 hashes, expire after 20 minutes, and are consumed atomically. A reset increments the account's token version, invalidating all previous access and refresh tokens, and sends a password-change notification. The user signs in again afterward.
+- Reset links use a URL fragment to avoid including the secret in access logs and referrers. Recovery requests are limited to ten attempts per IP per fifteen minutes, with a database-enforced one-minute email cooldown per account. The IP limiter is currently per process; use a shared store when deploying multiple server instances, and configure Express's trusted proxy settings for the actual deployment topology.
+
+### Nigerian locations
+
+New signup locations are validated against the shared, versioned catalogue in `../shared/data`. The client uses the same catalogue for dependent country/state/city pickers. Nigeria is the only enabled country. Matching labels are canonicalized, and `countryCode`, `stateCode`, and `cityId` are stored alongside existing readable names. Mismatched states/cities or identifiers are rejected. Existing records are not rewritten.
+
+The catalogue contains 36 states plus FCT and 513 city/area entries. It is community-maintained, not an exhaustive settlement register. See its README for source, licence, refresh instructions, and deployment requirements. City selection supports broad local discovery; exact distance ranking needs separately consented customer coordinates and vendor coordinates, rather than city-centre estimates.
+
 The Redis `/set-user` and `/get-user/:key` demos are available only with `NODE_ENV=development`, use a separate `demo:user:*` namespace, and expire after fifteen minutes. They are not account-management APIs.
 
 ## Existing accounts
@@ -79,3 +93,7 @@ Introduce `MenuItem` when browsing is built, using `vendorId` on each item. Intr
 - [Express error handling](https://expressjs.com/en/guide/error-handling/): rejected async route promises reach centralized error middleware.
 
 These references inform the design; public integration APIs do not establish the platforms' private database schemas.
+
+### Customer discovery location
+
+`PATCH /api/v1/users/me/location` accepts `{ location }` and derives the customer ID from the authenticated session. It validates and canonicalizes state/city and optional LGA codes against the shared catalogues. New client signups and location edits ask for an LGA; the server preserves compatibility with existing clients that only send city/state. Optional `area` is a neighbourhood/street label (100 characters). Optional `point` is GeoJSON `[longitude, latitude]`, with optional `accuracyMeters`. Coordinates are range-checked device input, not a verified address or delivery promise. Replacing a location without coordinates removes old coordinates. No existing records are migrated.

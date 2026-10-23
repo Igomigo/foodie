@@ -2,7 +2,7 @@ import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, useReducedMotion } from "motion/react";
-import type { Dish } from "./dishes";
+import type { Dish } from "@/data/food-inspiration";
 
 export default function DishCard({
   dish,
@@ -38,6 +38,7 @@ export default function DishCard({
       >
         <Image
           src={dish.image}
+          quality={90}
           alt={dish.alt}
           fill
           sizes="(max-width: 639px) 85vw, (max-width: 1023px) 46vw, 400px"

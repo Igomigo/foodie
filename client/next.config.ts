@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // The shared location catalogue lives alongside client/ and server/.
+  outputFileTracingRoot: path.resolve(__dirname, ".."),
 };
 
 export default nextConfig;

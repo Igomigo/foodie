@@ -1,20 +1,19 @@
 "use client";
 
 import Image from "next/image";
+import type { ReactNode } from "react";
 import { X } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
-import type { Dish } from "./dishes";
-import BrandButton from "@/components/shared/BrandButton";
-import { Eyebrow } from "./ui";
+import type { Dish } from "@/data/food-inspiration";
 
 export default function DishDialog({
   dish,
-  exploreHref,
+  action,
   onClose,
   onRestoreFocus,
 }: {
   dish: Dish | null;
-  exploreHref: string;
+  action: ReactNode;
   onClose: () => void;
   onRestoreFocus: () => void;
 }) {
@@ -39,6 +38,7 @@ export default function DishDialog({
               <div className="relative min-h-[230px] bg-[#ede8dc] sm:min-h-[430px]">
                 <Image
                   src={dish.image}
+                  quality={90}
                   alt={dish.alt}
                   fill
                   sizes="(max-width: 639px) 90vw, 400px"
@@ -48,9 +48,9 @@ export default function DishDialog({
                 />
               </div>
               <div className="p-7 sm:pt-14 sm:pb-10">
-                <Eyebrow className="text-[9px] text-foodie-muted">
+                <p className="text-[9px] font-semibold tracking-[.15em] text-foodie-muted">
                   YOUR NEXT CRAVING?
-                </Eyebrow>
+                </p>
                 <Dialog.Title className="mt-4 text-[34px] leading-[1.08] font-medium tracking-[-1.6px]">
                   {dish.name}
                 </Dialog.Title>
@@ -67,9 +67,7 @@ export default function DishDialog({
                     </span>
                   ))}
                 </div>
-                <BrandButton href={exploreHref}>
-                  Find food like this
-                </BrandButton>
+                {action}
                 <p className="mt-4 text-[10px] leading-relaxed text-foodie-muted">
                   A little inspiration. Menus vary by kitchen.
                 </p>

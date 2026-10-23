@@ -28,6 +28,13 @@ export const errorHandler: ErrorRequestHandler = (
   } else if (
     error instanceof Error &&
     "status" in error &&
+    error.status === 503
+  ) {
+    status = 503;
+    message = "Service temporarily unavailable. Please try again later";
+  } else if (
+    error instanceof Error &&
+    "status" in error &&
     typeof error.status === "number" &&
     error.status >= 400 &&
     error.status < 500

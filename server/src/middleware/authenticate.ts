@@ -8,9 +8,10 @@ export const authenticate: RequestHandler = async (req, res, next) => {
   const match = req.headers.authorization?.match(/^Bearer ([^\s]+)$/i);
   if (!match) throw httpError(401, "Authentication required");
 
-  const userId = verifyToken(match[1], "access");
+  const { userId, tokenVersion } = verifyToken(match[1], "access");
   const user = await userRepository.findById(userId);
-  if (!user || !user.isActive) throw httpError(401, "Account is unavailable");
+  if (!user || !user.isActive || (user.tokenVersion ?? 0) !== tokenVersion)
+    throw httpError(401, "Session expired. Please sign in again");
 
   // Read current roles from the database so role changes take effect immediately.
   res.locals.user = publicUser(user);

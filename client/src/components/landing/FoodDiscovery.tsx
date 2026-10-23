@@ -4,9 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Utensils } from "lucide-react";
 import { useMotionValue, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
-import { dishes, foodCategories, type Dish, type FoodCategory } from "./dishes";
+import {
+  dishes,
+  foodCategories,
+  type Dish,
+  type FoodCategory,
+} from "@/data/food-inspiration";
 import DishCard from "./DishCard";
-import DishDialog from "./DishDialog";
+import DishDialog from "@/components/shared/DishDialog";
+import BrandButton from "@/components/shared/BrandButton";
 import Reveal from "./Reveal";
 import { Eyebrow } from "./ui";
 import CravingProgress from "./CravingProgress";
@@ -225,7 +231,9 @@ export default function FoodDiscovery({
       </div>
       <DishDialog
         dish={selectedDish}
-        exploreHref={exploreHref}
+        action={
+          <BrandButton href={exploreHref}>Find food like this</BrandButton>
+        }
         onClose={() => setSelectedDish(null)}
         onRestoreFocus={() =>
           dishTrigger.current?.focus({ preventScroll: true })

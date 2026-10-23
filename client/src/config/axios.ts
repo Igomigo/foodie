@@ -1,3 +1,4 @@
+import type { StoredUser } from "@/types/user";
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 
 /**
@@ -41,9 +42,6 @@ const axiosRefreshInstance = axios.create({
   },
 });
 
-console.log("API URL from env:", process.env.NEXT_PUBLIC_API_URL);
-console.log("axiosInstance.defaults.baseURL", axiosInstance.defaults.baseURL);
-
 // =============================================================================
 // USER & TOKEN MANAGEMENT
 // =============================================================================
@@ -52,10 +50,20 @@ console.log("axiosInstance.defaults.baseURL", axiosInstance.defaults.baseURL);
  * Retrieves user data from localStorage
  * Only runs on client-side (browser)
  */
-export const getUser = () => {
+export const getUser = (): StoredUser | null => {
   if (typeof window !== "undefined") {
     const userStr = localStorage.getItem("user");
-    return userStr ? JSON.parse(userStr) : null;
+    if (!userStr) return null;
+    try {
+      const user = JSON.parse(userStr);
+      return user &&
+        typeof user.accessToken === "string" &&
+        typeof user.userId === "string"
+        ? user
+        : null;
+    } catch {
+      return null;
+    }
   }
   return null;
 };
@@ -139,7 +147,7 @@ axiosInstance.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // =============================================================================
@@ -238,7 +246,7 @@ axiosInstance.interceptors.response.use(
 
     // For all other errors, just reject
     return Promise.reject(error);
-  }
+  },
 );
 
 // =============================================================================

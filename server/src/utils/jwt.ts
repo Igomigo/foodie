@@ -7,6 +7,7 @@ interface TokenIdentity {
   userId: string;
   role: string;
   roles: Role[];
+  tokenVersion?: number;
 }
 
 export function getJwtSecret() {
@@ -16,20 +17,28 @@ export function getJwtSecret() {
 }
 
 export function generateAccessToken(identity: TokenIdentity) {
-  return jwt.sign({ ...identity, type: "access" }, getJwtSecret(), {
-    algorithm: "HS256",
-    expiresIn: "5m",
-  });
+  return jwt.sign(
+    { tokenVersion: 0, ...identity, type: "access" },
+    getJwtSecret(),
+    {
+      algorithm: "HS256",
+      expiresIn: "5m",
+    },
+  );
 }
 
 export function generateRefreshToken(identity: TokenIdentity) {
-  return jwt.sign({ ...identity, type: "refresh" }, getJwtSecret(), {
-    algorithm: "HS256",
-    expiresIn: "7d",
-  });
+  return jwt.sign(
+    { tokenVersion: 0, ...identity, type: "refresh" },
+    getJwtSecret(),
+    {
+      algorithm: "HS256",
+      expiresIn: "7d",
+    },
+  );
 }
 
-export function verifyToken(token: string, type: "access" | "refresh"): string {
+export function verifyToken(token: string, type: "access" | "refresh") {
   const secret = getJwtSecret();
   try {
     const payload = jwt.verify(token, secret, { algorithms: ["HS256"] });
@@ -37,11 +46,13 @@ export function verifyToken(token: string, type: "access" | "refresh"): string {
       typeof payload === "string" ||
       payload.type !== type ||
       typeof payload.userId !== "string" ||
-      !isObjectIdOrHexString(payload.userId)
+      !isObjectIdOrHexString(payload.userId) ||
+      (payload.tokenVersion !== undefined &&
+        (!Number.isInteger(payload.tokenVersion) || payload.tokenVersion < 0))
     ) {
       throw new Error("Invalid token payload");
     }
-    return payload.userId;
+    return { userId: payload.userId, tokenVersion: payload.tokenVersion ?? 0 };
   } catch {
     throw httpError(401, "Token expired or invalid");
   }

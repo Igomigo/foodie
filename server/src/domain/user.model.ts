@@ -7,6 +7,10 @@ export interface User {
   _id: Types.ObjectId;
   email: string;
   passwordHash: string;
+  tokenVersion: number;
+  passwordResetTokenHash?: string;
+  passwordResetExpiresAt?: Date;
+  passwordResetRequestedAt?: Date;
   username?: string;
   firstName?: string;
   lastName?: string;
@@ -31,6 +35,10 @@ const userSchema = new Schema<User>(
       unique: true,
     },
     passwordHash: { type: String, required: true, select: false },
+    tokenVersion: { type: Number, default: 0 },
+    passwordResetTokenHash: { type: String, select: false },
+    passwordResetExpiresAt: { type: Date, select: false },
+    passwordResetRequestedAt: { type: Date, select: false },
     username: { type: String, trim: true },
     firstName: { type: String, trim: true },
     lastName: { type: String, trim: true },
@@ -57,6 +65,8 @@ userSchema.index(
     partialFilterExpression: { username: { $type: "string" } },
   },
 );
+
+userSchema.index({ passwordResetTokenHash: 1 }, { sparse: true });
 
 export type UserDocument = HydratedDocument<User>;
 export const UserModel = model<User>("User", userSchema);

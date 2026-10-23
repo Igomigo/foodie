@@ -1,128 +1,113 @@
-"use client"
+"use client";
 
-import { z } from "zod"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import Link from "next/link"
-import { useState } from "react"
-import toast from "react-hot-toast"
-import { useRouter } from "next/navigation"
-import { signIn } from "@/sevices/auth.service"
-import { Eye, EyeOff } from "lucide-react"
-
-// Create form data validation schema
-const loginSchema = z
-  .object({
-    email: z.string().email({ message: "Invalid email address" }),
-    password: z.string().min(6, { message: "Password must have at least 6 characters" }),
-  });
-
-export type LoginFormData = z.infer<typeof loginSchema>
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import toast from "react-hot-toast";
+import { loginSchema, type LoginFormData } from "@/lib/auth-validation";
+import { apiErrorMessage } from "@/lib/api-error";
+import { signIn } from "@/sevices/auth.service";
+import AuthHeading from "@/components/auth/AuthHeading";
+import FormError from "@/components/auth/FormError";
+import BrandButton from "@/components/shared/BrandButton";
+import TextField from "@/components/shared/TextField";
+import PasswordField from "@/components/shared/PasswordField";
 
 export default function LoginPage() {
-  // Hooks
   const router = useRouter();
-
-  // State Management
-  const [isLoading, setIsLoading] = useState(false);
-  const [seePassword, setSeePassword] = useState(false);  
-
-  // Initialize form
+  const [error, setError] = useState("");
   const {
     register,
     handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-  });
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormData>({ resolver: zodResolver(loginSchema) });
 
-  // Handle form submission
-  const onSubmit = async (data: LoginFormData) => {
+  async function onSubmit(data: LoginFormData) {
+    setError("");
     try {
-      setIsLoading(true);
-
-      const response = await signIn(data);
-
-      toast.success(response?.data?.message || "Login successful");
-
-      // Check for redirect route
-      const redirectRoute = localStorage.getItem('redirectAfterLogin');
-      if (redirectRoute) {
-        localStorage.removeItem('redirectAfterLogin');
-        router.replace(redirectRoute);
-      } else {
-        router.replace("/home");
-      }
-    } catch (error: any) {
-      toast.error(error.response?.data?.errors || error.response?.data?.message);
-    } finally {
-      setIsLoading(false);
+      await signIn(data);
+      const saved = localStorage.getItem("redirectAfterLogin");
+      localStorage.removeItem("redirectAfterLogin");
+      const destination =
+        saved &&
+        /^\/(?!\/)/.test(saved) &&
+        !saved.includes("\\") &&
+        !saved.startsWith("/auth/")
+          ? saved
+          : "/home";
+      toast.success("Welcome back to Foodie");
+      router.replace(destination);
+    } catch (error) {
+      setError(
+        apiErrorMessage(error, "We couldn’t sign you in. Please try again"),
+      );
     }
   }
 
   return (
-    <div className="min-h-screen px-4 py-12 sm:px-6 lg:px-8 flex items-center">
-      <div className="flex-1 max-w-lg mx-auto shadow-lg border border-gray-100 rounded-lg p-6 sm:p-8">
-        <div className="text-center gap-2 mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-orange-500 mb-2">Foodie</h1>
-          <p className="text-sm sm:text-base text-gray-600">
-            Sign in to your account to continue
-          </p>
-        </div>
-        <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          <div className="flex flex-col gap-2">
-            <label className="text-gray-600 text-sm font-semibold" htmlFor="email">
-              Email{" "}
-              <span className="text-red-500" aria-label="required">
-                *
-              </span>
-            </label>
-            <input
-              type="email"
-              id="email"
-              className="w-full px-4 py-2 rounded-lg text-gray-500 font-semibold border border-gray-300 hover:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors"
-              {...register("email")}
-              placeholder="Enter your email"
-            />
-            {errors.email && <p className="text-red-600 text-sm">{errors.email.message}</p>}
-          </div>
-
-          <div className="relative flex flex-col gap-2">
-            <label className="text-gray-600 text-sm font-semibold" htmlFor="password">
-              Password{" "}
-              <span className="text-red-500" aria-label="required">
-                *
-              </span>
-            </label>
-            <input
-              type={seePassword ? "text" : "password"}
-              id="password"
-              className="w-full px-4 py-2 rounded-lg text-gray-500 font-semibold border border-gray-300 hover:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors"
-              {...register("password")}
-              placeholder="Enter your password"
-            />
-            <button
-              type="button"
-              onClick={() => setSeePassword(!seePassword)}
-              className="absolute right-4 top-1/2 text-gray-500 hover:text-orange-500 transition-colors ease-in-out duration-500"
+    <>
+      <AuthHeading
+        eyebrow="Your table is waiting"
+        title="Welcome back."
+        accent="Hungry?"
+      >
+        Your favourites, your local kitchens, your next good meal. Pick up where
+        you left off.
+      </AuthHeading>
+      <form
+        noValidate
+        onSubmit={handleSubmit(onSubmit)}
+        className="space-y-5"
+        aria-busy={isSubmitting}
+      >
+        <TextField
+          required
+          id="email"
+          label="Email address"
+          type="email"
+          autoComplete="email"
+          placeholder="you@example.com"
+          {...register("email")}
+          error={errors.email?.message}
+        />
+        <div>
+          <PasswordField
+            required
+            id="password"
+            label="Password"
+            autoComplete="current-password"
+            placeholder="Your password"
+            {...register("password")}
+            error={errors.password?.message}
+          />
+          <div className="mt-3 text-right">
+            <Link
+              href="/auth/forgot-password"
+              className="inline-flex min-h-8 items-center text-[11px] font-medium text-foodie-action hover:underline"
             >
-              {seePassword ? <EyeOff /> : <Eye />}
-            </button>
-            {errors.password && <p className="text-red-600 text-sm">{errors.password.message}</p>}
+              Forgot password?
+            </Link>
           </div>
-
-          <button
-            type="submit"
-            className="w-full py-3 px-4 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors"
-            disabled={isLoading}
-          >
-            {isLoading ? "Signing In..." : "Sign In"}
-          </button>
-          <div className="text-center">
-            <p className="text-sm">Don't have an account? <Link href={"/auth/signup"} className="text-orange-500 font-semibold hover:text-orange-600">sign up</Link></p>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
+        </div>
+        <FormError message={error} />
+        <BrandButton type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? "Signing you in…" : "Sign in to Foodie"}
+        </BrandButton>
+      </form>
+      <p className="mt-7 text-center text-xs text-foodie-muted">
+        New to Foodie?{" "}
+        <Link
+          href="/auth/signup"
+          className="font-semibold text-foodie-action hover:underline"
+        >
+          Make yourself at home
+        </Link>
+      </p>
+      <p className="mt-9 border-t border-foodie-line pt-5 text-center text-[10px] text-foodie-muted">
+        A good meal is always worth coming back for.
+      </p>
+    </>
+  );
 }

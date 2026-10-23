@@ -2,10 +2,16 @@ import Link from "next/link";
 import { Soup } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export default function Brand({ className }: { className?: string }) {
+export default function Brand({
+  className,
+  href = "/",
+}: {
+  className?: string;
+  href?: string;
+}) {
   return (
     <Link
-      href="/"
+      href={href}
       aria-label="Foodie home"
       className={cn(
         "inline-flex shrink-0 items-center gap-2 text-[30px] leading-none font-bold tracking-[-1.8px] text-foodie-ink",

@@ -191,6 +191,94 @@ test("backend account flows", { timeout: 60000 }, async (t) => {
   });
 
   await t.test(
+    "customers update only their own canonical discovery location",
+    async () => {
+      const other = await UserModel.findOne({ email: "second@example.com" });
+      const next = {
+        country: "Nigeria",
+        state: "Edo",
+        city: "Benin City",
+        lga: "Oredo",
+        area: " GRA ",
+        point: { type: "Point", coordinates: [5.62, 6.34] },
+        accuracyMeters: 28,
+      };
+      assert.equal(
+        (
+          await request("/users/me/location", {
+            method: "PATCH",
+            body: { location: next },
+          })
+        ).status,
+        401,
+      );
+      const result = await request("/users/me/location", {
+        method: "PATCH",
+        token: accessToken,
+        body: { userId: other.id, location: next, roles: ["admin"] },
+      });
+      assert.equal(result.status, 200);
+      assert.equal(result.body.data.userId, user._id);
+      assert.equal(result.body.data.location.area, "GRA");
+      assert.equal(result.body.data.location.stateCode, "ED");
+      assert.equal(
+        result.body.data.location.lgaCode,
+        require("../../shared/data/nigeria-lgas.json")
+          .states.find((state) => state.stateCode === "ED")
+          .lgas.find((lga) => lga.name === "Oredo").id,
+      );
+      assert.deepEqual(
+        result.body.data.location.point.coordinates,
+        [5.62, 6.34],
+      );
+      assert.equal(result.body.data.passwordHash, undefined);
+      assert.deepEqual(result.body.data.roles, ["user"]);
+      assert.equal((await UserModel.findById(other.id)).location, undefined);
+      const profile = await request(`/users/${user._id}`, {
+        token: accessToken,
+      });
+      assert.deepEqual(profile.body.data.location, result.body.data.location);
+      for (const invalid of [
+        { ...next, lga: "Ikeja" },
+        { ...next, lgaCode: "forged" },
+        { ...next, area: "x".repeat(101) },
+        { ...next, point: { type: "Point", coordinates: [181, 6] } },
+      ]) {
+        assert.equal(
+          (
+            await request("/users/me/location", {
+              method: "PATCH",
+              token: accessToken,
+              body: { location: invalid },
+            })
+          ).status,
+          400,
+        );
+      }
+      assert.deepEqual(
+        (await request(`/users/${user._id}`, { token: accessToken })).body.data
+          .location,
+        profile.body.data.location,
+      );
+      const changed = await request("/users/me/location", {
+        method: "PATCH",
+        token: accessToken,
+        body: {
+          location: {
+            country: "Nigeria",
+            state: "Lagos",
+            city: "Ikeja",
+            lga: "Ikeja",
+          },
+        },
+      });
+      assert.equal(changed.status, 200);
+      assert.equal(changed.body.data.location.point, undefined);
+      assert.equal(changed.body.data.location.accuracyMeters, undefined);
+    },
+  );
+
+  await t.test(
     "refresh checks token purpose, expiry, signatures, and payloads",
     async () => {
       const identity = {

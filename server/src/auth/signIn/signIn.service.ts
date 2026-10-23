@@ -20,6 +20,7 @@ export async function login(data: LoginInput) {
     userId: result.userId,
     role: result.role,
     roles: result.roles,
+    tokenVersion: user.tokenVersion ?? 0,
   };
   return {
     ...result,
