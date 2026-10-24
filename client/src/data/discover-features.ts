@@ -14,7 +14,7 @@ export interface DiscoverFeature {
 export const discoverFeatures: DiscoverFeature[] = [
   {
     title: "This banga?",
-    accent: "Na correct one.",
+    accent: "Na better one.",
     foods:
       "Banga soup, catfish and yellow starch. Na proper enjoyment be this.",
     language: "pcm",
@@ -23,7 +23,7 @@ export const discoverFeatures: DiscoverFeature[] = [
   },
   {
     title: "Groundnut soup?",
-    accent: "Eba is ready.",
+    accent: "With correct eba.",
     foods:
       "Rich groundnut soup and firm yellow eba. Give your usual soup a change.",
     language: "en",
@@ -66,7 +66,7 @@ export const discoverFeatures: DiscoverFeature[] = [
     dish: getDish("rice-and-stew"),
   },
   {
-    title: "One puff-puff?",
+    title: "Hot puff-puff?",
     accent: "You know better.",
     foods:
       "Golden puff-puff, samosas and spring rolls. Start with something light.",
