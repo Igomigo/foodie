@@ -9,7 +9,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import LocationForm from "@/components/location/LocationForm";
-import { useProfile } from "@/components/app/ProfileContext";
+import { useProfile } from "@/hooks/useProfile";
 
 export default function LocationDialog({
   open,
@@ -18,7 +18,7 @@ export default function LocationDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const { user } = useProfile();
+  const { data: user } = useProfile();
   const opener = useRef<HTMLElement | null>(null);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

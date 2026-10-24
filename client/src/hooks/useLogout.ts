@@ -1,20 +1,17 @@
-import { logoutUser } from "@/config/axios"
-import { useRouter } from "next/navigation"
-import toast from "react-hot-toast"
+"use client";
 
-export const useLogout = () => {
-    const router = useRouter();
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { logoutUser } from "@/config/axios";
+import { signOut } from "@/sevices/auth.service";
 
-    try {
-        const logout = async () => {
-            logoutUser();
-            toast.success('Logged out successfully');
-            router.push('/auth/login');
-        }
-
-        return logout;
-    } catch (error) {
-        toast.error('Failed to logout');
-        throw error;
-    }
+export function useLogout() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: signOut,
+    onSuccess: async () => {
+      await client.cancelQueries();
+      logoutUser();
+      client.clear();
+    },
+  });
 }

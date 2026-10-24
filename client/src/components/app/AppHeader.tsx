@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { MapPin, Compass, ShoppingBag, Settings } from "lucide-react";
 import Brand from "@/components/Brand";
 import { cn } from "@/lib/utils";
-import { useProfile } from "./ProfileContext";
+import { useProfile } from "@/hooks/useProfile";
 
 export const appNavigation = [
   { href: "/home", label: "Discover", icon: Compass },
@@ -15,7 +15,7 @@ export const appNavigation = [
 
 export default function AppHeader() {
   const pathname = usePathname();
-  const { user } = useProfile();
+  const { data: user } = useProfile();
   const location = user?.location;
   const displayLocation = location
     ? [location.area || location.lga, location.city].filter(Boolean).join(", ")

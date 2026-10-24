@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useProfile } from "@/components/app/ProfileContext";
+import { useProfile } from "@/hooks/useProfile";
 import BrandButton from "@/components/shared/BrandButton";
 import {
   locationInputSchema,
@@ -9,14 +9,22 @@ import {
   type LocationInput,
 } from "@/lib/location-validation";
 import { apiErrorMessage } from "@/lib/api-error";
-import { updateLocation } from "@/sevices/user.service";
+import { useUpdateLocation } from "@/hooks/useUpdateLocation";
 import LocationPicker from "./LocationPicker";
 import CurrentLocationButton, {
   type DevicePosition,
 } from "./CurrentLocationButton";
 
 export default function LocationForm({ onSaved }: { onSaved?: () => void }) {
-  const { user, updateProfile } = useProfile();
+  const { data: user } = useProfile();
+  const saveLocation = useUpdateLocation();
+  const pending = saveLocation.isPending;
+  const error = saveLocation.error
+    ? apiErrorMessage(
+        saveLocation.error,
+        "We couldn’t save your location. Please try again.",
+      )
+    : "";
   const saved = user?.location;
   const [value, setValue] = useState<LocationInput>({
     country: "Nigeria",
@@ -32,8 +40,6 @@ export default function LocationForm({ onSaved }: { onSaved?: () => void }) {
   const [errors, setErrors] = useState<
     Partial<Record<keyof LocationInput, string>>
   >({});
-  const [error, setError] = useState("");
-  const [pending, setPending] = useState(false);
   const [detecting, setDetecting] = useState(false);
   const [detectedMessage, setDetectedMessage] = useState("");
 
@@ -42,11 +48,11 @@ export default function LocationForm({ onSaved }: { onSaved?: () => void }) {
       noValidate
       className="space-y-5"
       aria-busy={pending || detecting}
-      onSubmit={async (event) => {
+      onSubmit={(event) => {
         event.preventDefault();
         if (pending || detecting) return;
         const result = locationInputSchema.safeParse(value);
-        setError("");
+        saveLocation.reset();
         if (!result.success) {
           const next: typeof errors = {};
           for (const issue of result.error.issues)
@@ -58,24 +64,13 @@ export default function LocationForm({ onSaved }: { onSaved?: () => void }) {
           return;
         }
         setErrors({});
-        setPending(true);
-        try {
-          const profile = await updateLocation({
+        saveLocation.mutate(
+          {
             ...toSavedLocation(result.data),
             ...position,
-          });
-          updateProfile(profile);
-          onSaved?.();
-        } catch (failure) {
-          setError(
-            apiErrorMessage(
-              failure,
-              "We couldn’t save your location. Please try again.",
-            ),
-          );
-        } finally {
-          setPending(false);
-        }
+          },
+          { onSuccess: () => onSaved?.() },
+        );
       }}
     >
       <fieldset disabled={pending || detecting} className="space-y-5">
@@ -101,7 +96,7 @@ export default function LocationForm({ onSaved }: { onSaved?: () => void }) {
               setValue(location);
               setPosition(devicePosition);
               setErrors({});
-              setError("");
+              saveLocation.reset();
               const found = [
                 location.city,
                 location.state,

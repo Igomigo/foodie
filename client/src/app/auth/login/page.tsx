@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -8,7 +7,7 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import { loginSchema, type LoginFormData } from "@/lib/auth-validation";
 import { apiErrorMessage } from "@/lib/api-error";
-import { signIn } from "@/sevices/auth.service";
+import { useLogin } from "@/hooks/useAuth";
 import AuthHeading from "@/components/auth/AuthHeading";
 import FormError from "@/components/auth/FormError";
 import BrandButton from "@/components/shared/BrandButton";
@@ -17,33 +16,33 @@ import PasswordField from "@/components/shared/PasswordField";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [error, setError] = useState("");
+  const login = useLogin();
+  const isSubmitting = login.isPending;
+  const error = login.error
+    ? apiErrorMessage(login.error, "We couldn’t sign you in. Please try again")
+    : "";
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<LoginFormData>({ resolver: zodResolver(loginSchema) });
 
-  async function onSubmit(data: LoginFormData) {
-    setError("");
-    try {
-      await signIn(data);
-      const saved = localStorage.getItem("redirectAfterLogin");
-      localStorage.removeItem("redirectAfterLogin");
-      const destination =
-        saved &&
-        /^\/(?!\/)/.test(saved) &&
-        !saved.includes("\\") &&
-        !saved.startsWith("/auth/")
-          ? saved
-          : "/home";
-      toast.success("Welcome back to Foodie");
-      router.replace(destination);
-    } catch (error) {
-      setError(
-        apiErrorMessage(error, "We couldn’t sign you in. Please try again"),
-      );
-    }
+  function onSubmit(data: LoginFormData) {
+    login.mutate(data, {
+      onSuccess: () => {
+        const saved = localStorage.getItem("redirectAfterLogin");
+        localStorage.removeItem("redirectAfterLogin");
+        const destination =
+          saved &&
+          /^\/(?!\/)/.test(saved) &&
+          !saved.includes("\\") &&
+          !saved.startsWith("/auth/")
+            ? saved
+            : "/home";
+        toast.success("Welcome back to Foodie");
+        router.replace(destination);
+      },
+    });
   }
 
   return (

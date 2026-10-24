@@ -1,12 +1,12 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
 import { LocateFixed } from "lucide-react";
-import type { SavedLocation } from "@/types/user";
 import type { LocationInput } from "@/lib/location-validation";
-import { lookupDeviceLocation } from "@/sevices/location.service";
-
-export type DevicePosition = Pick<SavedLocation, "point" | "accuracyMeters">;
+import {
+  useCurrentLocation,
+  type DevicePosition,
+} from "@/hooks/useCurrentLocation";
+export type { DevicePosition } from "@/hooks/useCurrentLocation";
 
 export default function CurrentLocationButton({
   onLocated,
@@ -15,83 +15,15 @@ export default function CurrentLocationButton({
   onLocated: (location: LocationInput, position: DevicePosition) => void;
   onPendingChange: (pending: boolean) => void;
 }) {
-  const [stage, setStage] = useState<"idle" | "locating" | "looking-up">(
-    "idle",
-  );
-  const [error, setError] = useState("");
-  const active = useRef(true);
-  const request = useRef<AbortController | null>(null);
-  useEffect(() => {
-    active.current = true;
-    return () => {
-      active.current = false;
-      request.current?.abort();
-    };
-  }, []);
-
-  function finish() {
-    setStage("idle");
-    onPendingChange(false);
-  }
+  const lookup = useCurrentLocation();
+  const stage = lookup.isPending ? lookup.stage : "idle";
 
   function locate() {
-    setError("");
-    if (!navigator.geolocation) {
-      setError(
-        "Your browser doesn’t support location. You can enter your area above.",
-      );
-      return;
-    }
-    setStage("locating");
     onPendingChange(true);
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        if (!active.current) return;
-        setStage("looking-up");
-        const controller = new AbortController();
-        request.current = controller;
-        const timeout = setTimeout(() => controller.abort(), 10000);
-        try {
-          const location = await lookupDeviceLocation(
-            position,
-            controller.signal,
-          );
-          if (!active.current) return;
-          onLocated(location, {
-            point: {
-              type: "Point",
-              coordinates: [
-                position.coords.longitude,
-                position.coords.latitude,
-              ],
-            },
-            accuracyMeters: position.coords.accuracy,
-          });
-        } catch (failure) {
-          if (active.current)
-            setError(
-              controller.signal.aborted
-                ? "The area lookup took too long. Try again or choose your area manually."
-                : failure instanceof Error
-                  ? failure.message
-                  : "We couldn’t fill your area. Please choose it manually.",
-            );
-        } finally {
-          clearTimeout(timeout);
-          if (active.current) finish();
-        }
-      },
-      (failure) => {
-        if (!active.current) return;
-        finish();
-        setError(
-          failure.code === 1
-            ? "Location permission wasn’t granted. You can still enter your area above."
-            : "We couldn’t find your position. Try again or enter your area above.",
-        );
-      },
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 },
-    );
+    lookup.mutate(undefined, {
+      onSuccess: ({ location, position }) => onLocated(location, position),
+      onSettled: () => onPendingChange(false),
+    });
   }
 
   return (
@@ -122,9 +54,9 @@ export default function CurrentLocationButton({
         receives your device’s coordinates and IP address to fill this form.
         Review before saving.
       </p>
-      {error && (
+      {lookup.error && (
         <p role="alert" className="mt-2 text-xs text-red-700">
-          {error}
+          {lookup.error.message}
         </p>
       )}
     </div>

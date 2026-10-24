@@ -1,47 +1,41 @@
 "use client";
 
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MailCheck, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { forgotPasswordSchema } from "@/lib/auth-validation";
 import { apiErrorMessage } from "@/lib/api-error";
-import { forgotPassword } from "@/sevices/auth.service";
+import { useForgotPassword } from "@/hooks/useAuth";
 import AuthHeading from "@/components/auth/AuthHeading";
 import FormError from "@/components/auth/FormError";
 import TextField from "@/components/shared/TextField";
 import BrandButton from "@/components/shared/BrandButton";
 
 export default function ForgotPasswordPage() {
-  const [sent, setSent] = useState(false);
-  const [error, setError] = useState("");
+  const recovery = useForgotPassword();
+  const isSubmitting = recovery.isPending;
+  const error = recovery.error
+    ? apiErrorMessage(
+        recovery.error,
+        "We couldn’t request a reset link. Please try again",
+      )
+    : "";
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<{ email: string }>({
     resolver: zodResolver(forgotPasswordSchema),
   });
 
-  async function onSubmit({ email }: { email: string }) {
-    setError("");
-    try {
-      await forgotPassword(email);
-      setSent(true);
-    } catch (error) {
-      setError(
-        apiErrorMessage(
-          error,
-          "We couldn’t request a reset link. Please try again",
-        ),
-      );
-    }
+  function onSubmit({ email }: { email: string }) {
+    recovery.mutate(email);
   }
 
   return (
     <>
-      {sent ? (
+      {recovery.isSuccess ? (
         <div role="status">
           <span className="mb-7 grid size-14 place-items-center rounded-full bg-foodie-sage/50 text-foodie-forest">
             <MailCheck size={25} strokeWidth={1.4} />
@@ -59,7 +53,7 @@ export default function ForgotPasswordPage() {
           </p>
           <button
             type="button"
-            onClick={() => setSent(false)}
+            onClick={() => recovery.reset()}
             className="mt-6 min-h-11 text-xs font-medium text-foodie-action hover:underline"
           >
             Try a different email

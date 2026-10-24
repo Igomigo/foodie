@@ -6,8 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, Link2Off } from "lucide-react";
 import { resetPasswordSchema } from "@/lib/auth-validation";
 import { apiErrorMessage } from "@/lib/api-error";
-import { resetPassword } from "@/sevices/auth.service";
-import { logoutUser } from "@/config/axios";
+import { useResetPassword } from "@/hooks/useAuth";
 import AuthHeading from "@/components/auth/AuthHeading";
 import FormError from "@/components/auth/FormError";
 import PasswordField from "@/components/shared/PasswordField";
@@ -16,11 +15,18 @@ import BrandButton from "@/components/shared/BrandButton";
 export default function ResetPasswordPage() {
   const [token, setToken] = useState<string | null>(null);
   const [complete, setComplete] = useState(false);
-  const [error, setError] = useState("");
+  const resetPassword = useResetPassword();
+  const isSubmitting = resetPassword.isPending;
+  const error = resetPassword.error
+    ? apiErrorMessage(
+        resetPassword.error,
+        "We couldn’t reset your password. Please request a new link",
+      )
+    : "";
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<{ password: string; confirmPassword: string }>({
     resolver: zodResolver(resetPasswordSchema),
   });
@@ -29,28 +35,18 @@ export default function ResetPasswordPage() {
     setToken(window.location.hash.slice(1));
   }, []);
 
-  async function onSubmit({
-    password,
-    confirmPassword,
-  }: {
-    password: string;
-    confirmPassword: string;
-  }) {
+  function onSubmit(data: { password: string; confirmPassword: string }) {
     if (!token) return;
-    setError("");
-    try {
-      await resetPassword(token, password, confirmPassword);
-      logoutUser();
-      window.history.replaceState(null, "", window.location.pathname);
-      setComplete(true);
-    } catch (error) {
-      setError(
-        apiErrorMessage(
-          error,
-          "We couldn’t reset your password. Please request a new link",
-        ),
-      );
-    }
+    resetPassword.mutate(
+      { token, ...data },
+      {
+        onSuccess: () => {
+          window.history.replaceState(null, "", window.location.pathname);
+          setComplete(true);
+          resetPassword.reset();
+        },
+      },
+    );
   }
 
   if (token === null)

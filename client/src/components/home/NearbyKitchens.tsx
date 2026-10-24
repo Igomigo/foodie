@@ -1,10 +1,10 @@
 "use client";
 
 import { Store } from "lucide-react";
-import { useProfile } from "@/components/app/ProfileContext";
+import { useProfile } from "@/hooks/useProfile";
 
 export default function NearbyKitchens() {
-  const { user } = useProfile();
+  const { data: user } = useProfile();
   const location = user?.location;
   return (
     <section

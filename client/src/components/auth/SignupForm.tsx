@@ -9,7 +9,7 @@ import toast from "react-hot-toast";
 import { ArrowLeft, Check } from "lucide-react";
 import { signupSchema, type SignupFormData } from "@/lib/auth-validation";
 import { apiErrorMessage } from "@/lib/api-error";
-import { signUp } from "@/sevices/auth.service";
+import { useSignup } from "@/hooks/useAuth";
 import BrandButton from "@/components/shared/BrandButton";
 import AuthHeading from "./AuthHeading";
 import FormError from "./FormError";
@@ -19,7 +19,14 @@ import LocationFields from "./LocationFields";
 export default function SignupForm() {
   const router = useRouter();
   const [step, setStep] = useState(1);
-  const [error, setError] = useState("");
+  const signup = useSignup();
+  const isSubmitting = signup.isPending;
+  const error = signup.error
+    ? apiErrorMessage(
+        signup.error,
+        "We couldn’t create your account. Please try again",
+      )
+    : "";
   const heading = useRef<HTMLDivElement>(null);
   const form = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
@@ -41,7 +48,7 @@ export default function SignupForm() {
     register,
     handleSubmit,
     trigger,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = form;
 
   useEffect(() => {
@@ -59,20 +66,13 @@ export default function SignupForm() {
       setStep(2);
   }
 
-  async function onSubmit(data: SignupFormData) {
-    setError("");
-    try {
-      await signUp(data);
-      toast.success("You’re in. Sign in to find your next favourite");
-      router.replace("/auth/login");
-    } catch (error) {
-      setError(
-        apiErrorMessage(
-          error,
-          "We couldn’t create your account. Please try again",
-        ),
-      );
-    }
+  function onSubmit(data: SignupFormData) {
+    signup.mutate(data, {
+      onSuccess: () => {
+        toast.success("You’re in. Sign in to find your next favourite");
+        router.replace("/auth/login");
+      },
+    });
   }
 
   return (

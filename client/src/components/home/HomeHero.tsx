@@ -9,10 +9,10 @@ import {
 } from "@/data/discover-features";
 import { ArrowDownRight } from "lucide-react";
 import BrandButton from "@/components/shared/BrandButton";
-import { useProfile } from "@/components/app/ProfileContext";
+import { useProfile } from "@/hooks/useProfile";
 
 export default function HomeHero() {
-  const { user } = useProfile();
+  const { data: user } = useProfile();
   const [feature, setFeature] = useState(discoverFeatures[0]);
 
   useEffect(() => {

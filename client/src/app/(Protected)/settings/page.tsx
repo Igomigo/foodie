@@ -10,15 +10,21 @@ import {
   ShieldCheck,
   UserRound,
 } from "lucide-react";
-import { useProfile } from "@/components/app/ProfileContext";
-import { signOut } from "@/sevices/auth.service";
+import { useProfile } from "@/hooks/useProfile";
+import { useLogout } from "@/hooks/useLogout";
 import { apiErrorMessage } from "@/lib/api-error";
 
 export default function SettingsPage() {
-  const { user } = useProfile();
+  const { data: user } = useProfile();
   const [locationOpen, setLocationOpen] = useState(false);
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState("");
+  const logout = useLogout();
+  const pending = logout.isPending;
+  const error = logout.error
+    ? apiErrorMessage(
+        logout.error,
+        "We couldn’t sign you out. Please try again.",
+      )
+    : "";
   const location = user?.location;
   return (
     <div className="mx-auto max-w-[900px]">
@@ -101,22 +107,11 @@ export default function SettingsPage() {
         <button
           type="button"
           disabled={pending}
-          onClick={async () => {
-            setPending(true);
-            setError("");
-            try {
-              await signOut();
-              window.location.replace("/auth/login");
-            } catch (failure) {
-              setError(
-                apiErrorMessage(
-                  failure,
-                  "We couldn’t sign you out. Please try again.",
-                ),
-              );
-              setPending(false);
-            }
-          }}
+          onClick={() =>
+            logout.mutate(undefined, {
+              onSuccess: () => window.location.replace("/auth/login"),
+            })
+          }
           className="flex min-h-12 items-center gap-3 rounded-full border border-foodie-line px-5 text-xs font-semibold text-foodie-action transition-colors hover:bg-foodie-action/5 disabled:opacity-50"
         >
           <LogOut size={17} aria-hidden="true" />

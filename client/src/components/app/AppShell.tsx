@@ -2,15 +2,15 @@
 
 import { useState, type ReactNode } from "react";
 import { Sparkles } from "lucide-react";
-import { ProfileProvider, useProfile } from "./ProfileContext";
+import { useProfile } from "@/hooks/useProfile";
 import AppHeader from "./AppHeader";
 import MobileNavigation from "./MobileNavigation";
 import { assistantName } from "@/data/assistant";
 import AIChatModal from "@/components/AIChatModal";
 
-function AppContent({ children }: { children: ReactNode }) {
+export default function AppShell({ children }: { children: ReactNode }) {
   const [assistantOpen, setAssistantOpen] = useState(false);
-  const { profileError } = useProfile();
+  const { isError: profileError } = useProfile();
   return (
     <div className="min-h-svh bg-foodie-paper text-foodie-ink selection:bg-foodie-sage">
       <a
@@ -50,13 +50,5 @@ function AppContent({ children }: { children: ReactNode }) {
       <MobileNavigation />
       <AIChatModal open={assistantOpen} onOpenChange={setAssistantOpen} />
     </div>
-  );
-}
-
-export default function AppShell({ children }: { children: ReactNode }) {
-  return (
-    <ProfileProvider>
-      <AppContent>{children}</AppContent>
-    </ProfileProvider>
   );
 }

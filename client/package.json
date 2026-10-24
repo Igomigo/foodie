@@ -22,6 +22,7 @@
     "@radix-ui/react-tabs": "^1.1.12",
     "@radix-ui/react-use-controllable-state": "^1.2.2",
     "@shikijs/transformers": "4.5.0",
+    "@tanstack/react-query": "^5.104.5",
     "axios": "^1.9.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -43,9 +44,11 @@
   "devDependencies": {
     "@shadcn/ui": "^0.0.4",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/react": "^16.3.3",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "jsdom": "^29.1.1",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.5",
     "typescript": "^5"

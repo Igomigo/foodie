@@ -41,7 +41,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## Signed-in experience
 
-`components/app` contains the shared header, mobile navigation and profile state. Location editing is available only from Settings; the header displays the saved area beside the avatar. The shared editor lives in `components/location`. Discover uses the same food-inspiration catalogue and dish preview as the landing page. Search and category filters operate on that inspiration collection; no vendor/menu API is available yet. Kitchen availability and Ask Amaka are honest upcoming states. Settings wires the existing logout endpoint, then clears the local identity and returns to login.
+`components/app` contains the shared header and mobile navigation. Profile data is shared through the React Query cache. Location editing is available only from Settings; the header displays the saved area beside the avatar. The shared editor lives in `components/location`. Discover uses the same food-inspiration catalogue and dish preview as the landing page. Search and category filters operate on that inspiration collection; no vendor/menu API is available yet. Kitchen availability and Ask Amaka are honest upcoming states. Settings wires the existing logout endpoint, then clears the local identity and returns to login.
 
 Location pickers share the state/city directory and a separate 774-LGA snapshot under `shared/data`. Neighbourhood/street is optional free text. Device positioning is optional, requested only on a button click, and requires browser permission. The browser calls BigDataCloud’s free, keyless reverse-geocoding API with newly obtained, permissioned device coordinates to fill the form. Missing catalogue matches require manual selection. Never send stored or fixture coordinates to that free endpoint. See the shared data README for attribution, refresh scripts and accuracy limits.
 
@@ -60,3 +60,20 @@ We checked reusable web photography first. The Commons [BangaSoup photo](https:/
 Culinary references for accurate food pairings and textures: [Sisi Yemmie’s Banga and starch recipe](https://www.youtube.com/watch?v=cZFbLtn6lO0), [Nigerian groundnut soup](https://www.allnigerianrecipes.com/soups/groundnut-soup/), and [Afang soup](https://www.allnigerianrecipes.com/soups/afang-soup/). These informed the brief; their photographs were not used as image inputs.
 
 Current recommendations rotate daily. Morning/afternoon/evening selection remains future work.
+
+## Client API requests
+
+Use TanStack Query v5 hooks in `src/hooks` for server data and actions. Components handle form validation, navigation and messages; services in `src/sevices` make the HTTP requests. Keep new hooks direct: `useQuery` for reads, `useMutation` for actions. Static food catalogues and form fields remain ordinary local state.
+
+`QueryProvider` creates one client per mounted application. Queries stay fresh for one minute, refetch stale data on focus/reconnect, and retry a network/server failure once. Client errors are not retried. Mutations are never retried or queued offline; their inactive cache entries are discarded immediately. No query cache is persisted.
+
+- `useProfile`: one cache entry per user, shared across the header, Discover and Settings. A saved public snapshot is shown during the initial refresh; access tokens are excluded. Requests consume Query’s abort signal.
+- `useUpdateLocation`: cancels an older profile read, applies the server’s saved profile, then invalidates that profile query to verify it. Other profile consumers update immediately.
+- `useAuth` and `useLogout`: signup, login, recovery, reset and logout mutations. Successful login, password reset and logout cancel old reads and clear previous session caches. Failed logout preserves the session.
+- `useCurrentLocation`: a button-triggered mutation that requests a fresh device position, then calls the reverse-geocoding service. It does not run on mount, focus or reconnect; unmounting aborts the lookup.
+
+Axios still attaches and refreshes authentication tokens; React Query manages the request lifecycle and cache. Public auth requests bypass the refresh interceptor, so an invalid password remains a form error.
+
+Run `npm test` for hook integration checks as well as the location/catalogue tests. Hook tests use React Testing Library with mocked HTTP/browser responses, including deduplication, invalidation, cancellation, session isolation and failure cases. They never contact the external location provider.
+
+References: [TanStack defaults](https://tanstack.com/query/latest/docs/framework/react/guides/important-defaults), [mutation invalidation](https://tanstack.com/query/latest/docs/framework/react/guides/invalidations-from-mutations), [query cancellation](https://tanstack.com/query/latest/docs/framework/react/guides/query-cancellation).
