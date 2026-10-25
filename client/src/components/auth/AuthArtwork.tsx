@@ -1,8 +1,13 @@
+"use client";
+
 import Image from "next/image";
 import { Asterisk, Heart, MapPin } from "lucide-react";
 import Brand from "@/components/Brand";
+import { usePathname } from "next/dist/client/components/navigation";
 
 export default function AuthArtwork() {
+  const route = usePathname();
+
   return (
     <aside className="relative hidden min-h-[740px] overflow-hidden rounded-[28px] bg-foodie-forest text-foodie-paper lg:sticky lg:top-4 lg:flex lg:h-[calc(100svh-32px)] lg:max-h-[1100px] lg:flex-col">
       <div className="relative z-10 px-10 pt-9 xl:px-13">
@@ -26,7 +31,7 @@ export default function AuthArtwork() {
         <div className="absolute top-[5%] -left-[12%] aspect-square w-[95%] rounded-full border border-foodie-sage/20" />
         <div className="absolute top-[13%] -left-[5%] aspect-square w-[85%] rounded-full bg-[#df7953]" />
         <Image
-          src="/images/landing-jollof.png"
+          src={route === "/auth/signup" ? "/images/landing-jollof.png" : "/images/foodie-rice-stew.png"}
           alt=""
           width={800}
           height={800}
@@ -40,7 +45,7 @@ export default function AuthArtwork() {
         />
         <div className="absolute top-[32%] right-5 z-10 w-[138px] rotate-8 rounded-xl bg-foodie-paper p-2.5 pb-4 text-foodie-ink shadow-xl xl:right-8 xl:w-[160px]">
           <Image
-            src="/images/foodie-small-chops.png"
+            src={route === "/auth/signup" ? "/images/foodie-egusi-eba.png" : "/images/foodie-oha.png"}
             alt=""
             width={180}
             height={160}

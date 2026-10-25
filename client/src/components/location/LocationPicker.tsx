@@ -143,7 +143,7 @@ export default function LocationPicker({
           aria-describedby={`area-${errors.area ? "error" : "hint"}`}
         />
       </FormField>
-      <p className="text-[9px] leading-relaxed text-foodie-muted">
+      {/* <p className="text-[9px] leading-relaxed text-foodie-muted">
         Directories:{" "}
         <a
           className="underline underline-offset-2"
@@ -163,7 +163,7 @@ export default function LocationPicker({
           Open Admin Data · CC BY 4.0
         </a>
         .
-      </p>
+      </p> */}
     </div>
   );
 }

@@ -13,13 +13,13 @@ export default function AuthHeading({
 }) {
   return (
     <div className="mb-8">
-      <p className="mb-5 flex items-center gap-2.5 text-[9px] font-medium tracking-[.18em] text-foodie-muted uppercase">
+      {/* <p className="mb-5 flex items-center gap-2.5 text-[9px] font-medium tracking-[.18em] text-foodie-muted uppercase">
         <span
           aria-hidden="true"
           className="size-1.5 rounded-full bg-foodie-orange ring-4 ring-foodie-orange/8"
         />
         {eyebrow}
-      </p>
+      </p> */}
       <h1 className="text-[clamp(2.7rem,5vw,3.55rem)] leading-[1.05] font-medium tracking-[-.06em]">
         {title}
         <br />
