@@ -1,0 +1,8 @@
+[
+  { "id": "rice", "name": "Rice bowls" },
+  { "id": "soups-swallows", "name": "Soups & swallows" },
+  { "id": "grills", "name": "Off the grill" },
+  { "id": "small-chops", "name": "Small chops" },
+  { "id": "breakfast", "name": "Breakfast" },
+  { "id": "drinks", "name": "Drinks" }
+]

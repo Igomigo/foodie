@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { UserModel } from "../domain/user.model";
 import { VendorModel } from "../domain/vendor.model";
+import { MenuItemModel } from "../domain/menu-item.model";
 import { logger } from "../utils/logger";
 
 export async function connectDatabase() {
@@ -14,7 +15,11 @@ export async function connectDatabase() {
       "MongoDB must be a replica set to support atomic vendor registration",
     );
   }
-  await Promise.all([UserModel.init(), VendorModel.init()]);
+  await Promise.all([
+    UserModel.init(),
+    VendorModel.init(),
+    MenuItemModel.init(),
+  ]);
   logger.info("Connected to database", "MongoDB");
 }
 
