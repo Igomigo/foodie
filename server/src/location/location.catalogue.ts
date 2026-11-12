@@ -52,3 +52,9 @@ export function findNigerianLocation(
     cityId: city.id,
   };
 }
+
+export function findLocalGovernmentByCode(stateCode: string, code: string) {
+  return localGovernments.states
+    .find((state) => state.stateCode === stateCode)
+    ?.lgas.find((lga) => lga.id === code);
+}

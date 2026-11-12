@@ -25,3 +25,7 @@ Signed-in customers can use browser geolocation from Settings, with explicit per
 Detected state/city/LGA names are matched against our shared catalogues. City aliases are explicit (for example Benin → Benin City), not fuzzy or nearest-city guesses. Only returned administrative LGA/council boundaries can fill an LGA; city names are not used to infer one. Missing city/LGA matches are cleared for manual selection, rather than retaining a previous address. An unlisted locality may fill the optional neighbourhood field. Provider coverage can be incomplete. Require the customer to review and save; this is not a verified address or a delivery guarantee. Reject IP-only results and device accuracy worse than 5 km.
 
 Store GeoJSON as `[longitude, latitude]`, with reported accuracy in metres. Changing a known location clears the device position; filling a previously missing city or LGA within the detected state retains it. Do not use city centres as customer coordinates. Vendor positions, service areas and distance matching remain future work.
+
+## Food categories
+
+`food-categories.json` is Foodie's own food-category list, separate from the attributed location datasets above. IDs are stable API values; names are display labels. The backend validates menu items against this list and publishes it through `GET /api/v1/food-categories`. The client can use that endpoint when its live catalogue is connected. "All" is a UI filter, not a stored category.

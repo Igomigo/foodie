@@ -24,7 +24,7 @@ npm test
 
 Tests start a temporary local `mongod` replica set, use a random database and HTTP port, and clean up afterward. Install `mongod`, or set `TEST_MONGODB_URI` to a dedicated replica set you can use for tests. The test runner creates and drops its own randomly named `foodie_test_*` database; it does not use the application database configured in `.env`.
 
-Coverage includes account creation, concurrent duplicates, request sanitization, credential exclusion, vendor-registration transactions and rollback, login, token purpose and expiry, ownership, disabled accounts, logout cookies, and legacy migration.
+Coverage includes account creation, concurrent duplicates, request sanitization, credential exclusion, vendor-registration transactions and rollback, login, token purpose and expiry, ownership, disabled accounts, logout cookies, legacy migration, catalogue visibility, location/category/search filtering, menu options, pagination and kitchen availability.
 
 Run `npm run format` or `npx prettier --write . --ignore-unknown` from `server` to format supported source, test, configuration, and documentation files. Generated output, dependencies, and local environment files are ignored.
 
@@ -77,11 +77,66 @@ The migration preflights all source identities and destination collisions, prese
 
 Existing `isActive: false` values are preserved. The old schema defaulted this field to false even though login did not enforce it. Review inactive accounts and explicitly activate eligible accounts before switching traffic; the migration reports their count and does not silently enable them. Old Redis profile caches are no longer read.
 
+## Customer catalogue
+
+The catalogue is public and read-only. Routes use the existing `{ success, message, data }` envelope. Vendor signup and account contracts are unchanged.
+
+| Method | Path                       | Result                                                    |
+| ------ | -------------------------- | --------------------------------------------------------- |
+| GET    | `/api/v1/food-categories`  | Food category IDs and display names                       |
+| GET    | `/api/v1/vendors`          | Kitchens in the requested city that have a published menu |
+| GET    | `/api/v1/vendors/:id`      | Kitchen details and current availability                  |
+| GET    | `/api/v1/vendors/:id/menu` | Kitchen details and a page of published meals             |
+| GET    | `/api/v1/menu-items`       | Meals from kitchens in the requested city                 |
+| GET    | `/api/v1/menu-items/:id`   | `{ item, vendor }` for a published meal                   |
+
+### Location, search and pagination
+
+`/vendors` and `/menu-items` require `stateCode` and `cityId` from the shared Nigerian directory. Optional `lgaCode` narrows results to kitchens whose recorded address is in that LGA. The city and LGA must each belong to the requested state; there is no assumed city-to-LGA mapping. Label-only legacy addresses can match the canonical city and LGA names without any database rewrite.
+
+These filters describe a kitchen's location, not delivery coverage or exact distance. A delivery destination still needs confirmation and coverage checks when checkout is implemented. Customer coordinates are not accepted by these browsing endpoints.
+
+All lists accept:
+
+- `q`: case-insensitive literal text, 1–80 characters after trimming. Kitchen search matches business names; meal search matches item names and descriptions. Search both endpoints to present kitchen and meal results together.
+- `category`: a category ID returned by `/food-categories`. Kitchen results must have a published item in that category.
+- `page`: 1–1000, default 1.
+- `limit`: 1–50, default 20.
+
+The vendor-specific menu accepts those same search, category and pagination parameters, without location parameters. Invalid IDs, unknown parameters, arrays, invalid locations and invalid pagination return `400`. Missing or hidden detail records return `404`. Empty lists and approved kitchens with an empty menu return `200`.
+
+List data contains `{ items, page, limit, hasMore }`. The vendor menu also includes `vendor`, even when its item list is empty. Results have a stable ascending ID order. This is not a popularity or distance ranking. Filtering happens before pagination. Queries read one additional row for `hasMore` and have a five-second database execution limit.
+
+```sh
+curl 'http://localhost:2000/api/v1/food-categories'
+curl 'http://localhost:2000/api/v1/vendors?stateCode=ED&cityId=76800'
+curl 'http://localhost:2000/api/v1/menu-items?stateCode=ED&cityId=76800&category=soups-swallows&q=banga'
+curl 'http://localhost:2000/api/v1/vendors/VENDOR_ID/menu?limit=20'
+```
+
+### Visibility and availability
+
+A public kitchen must be approved, with an active owner who still has the vendor role. Pending/suspended kitchens, missing owners and disabled owners are excluded from searches and direct links. Kitchen listings also require at least one published menu item. Closed or paused kitchens remain visible with their actual availability.
+
+Public responses select customer-facing fields explicitly. Owner identity, account credentials, approval internals, publication flags, business contact numbers and stored coordinates are excluded.
+
+`openingHours` contains at most one interval per weekday: `{ day, opensAt, closesAt }`. Days run from Sunday (`0`) to Saturday (`6`). Times use `HH:mm` in `Africa/Lagos`; opening is inclusive and closing is exclusive. A missing day means closed. `22:00`–`02:00` crosses midnight; `00:00`–`24:00` covers a whole day. Equal opening/closing times are invalid. Kitchens start with no hours and `acceptingOrders: false`. Older records without these fields are treated as closed and paused.
+
+`isOpen` reflects the schedule. `isAcceptingOrders` also requires approval and the kitchen's manual `acceptingOrders` setting. A meal's `isAvailable` requires its own stock flag and enough available choices to satisfy each required option. `canOrder` also requires the kitchen to be accepting orders. Published sold-out meals stay visible with `canOrder: false`. Availability describes the current catalogue, not an order reservation; checkout must recheck stock, options and prices.
+
+### Menu records
+
+`menuitems` references `vendors` through `vendorId`. Each meal has a name, category, optional description/image, price, NGN currency, publication and stock flags, and optional choice groups. Prices are non-negative safe integers in **kobo**: `350000` means ₦3,500. Choice prices are extra charges added to the base price.
+
+An option group has a name, `minSelections`, `maxSelections`, and choices with their own name, price and availability. Groups and choices keep stable IDs. A required protein selection could use `minSelections: 1`, `maxSelections: 1`; an optional extra uses `minSelections: 0`. New meals start unpublished. The shared category list lives in `../shared/data/food-categories.json`.
+
+Catalogue writes, approvals and vendor dashboards are separate future work. No public route can create, approve or publish catalogue records. Automated tests populate isolated databases only; this change does not seed, migrate or edit application data.
+
 ## Next features
 
-Build the customer experience first: vendor/menu browsing, then checkout and order history. Vendor/menu records can initially be seeded or managed internally. Vendor dashboards, menu editing, and order acceptance come afterward.
+Connect the client to the catalogue, then add basket, checkout and order history. Vendor dashboards, menu editing and order acceptance follow incrementally.
 
-Introduce `MenuItem` when browsing is built, using `vendorId` on each item. Introduce `Order` with checkout: one vendor per order initially, integer monetary amounts with currency, and embedded snapshots of purchased item names, prices, and delivery address. Compute totals on the server. Add vendor staff memberships when multiple operators are needed; ownership and a short roles list are enough for this version.
+Introduce `Order` with checkout: one vendor per order initially, integer monetary amounts with currency, and embedded snapshots of purchased item names, prices and delivery address. Compute totals on the server. Add vendor staff memberships when multiple operators are needed; ownership and a short roles list are enough for this version.
 
 ## Design references
 
