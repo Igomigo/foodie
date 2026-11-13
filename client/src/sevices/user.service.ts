@@ -11,9 +11,11 @@ export async function getProfile(
 
 export async function updateLocation(
   location: SavedLocation,
+  confirmed = false,
 ): Promise<UserProfile> {
   const response = await axiosInstance.patch("/users/me/location", {
     location,
+    ...(confirmed ? { confirmed: true } : {}),
   });
   return response.data.data;
 }

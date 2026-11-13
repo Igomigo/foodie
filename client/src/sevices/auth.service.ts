@@ -1,7 +1,6 @@
 import axios from "axios";
 import type { LoginFormData, SignupFormData } from "@/lib/auth-validation";
 import { normalizePhone } from "@/lib/auth-validation";
-import { toSavedLocation } from "@/lib/location-validation";
 import type { StoredUser } from "@/types/user";
 
 // Public auth requests must not trigger the signed-in session refresh interceptor.
@@ -16,7 +15,6 @@ export async function signUp(data: SignupFormData) {
     email: data.email,
     password: data.password,
     phoneNumber: normalizePhone(data.phoneNumber),
-    location: toSavedLocation(data),
     role: "user",
   });
 }

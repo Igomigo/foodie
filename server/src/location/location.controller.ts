@@ -4,9 +4,16 @@ import {
   locationAttribution,
   reverseGeocode,
   searchAddresses,
+  getMapTile,
 } from "./location.service";
 
 export class LocationController {
+  async tile(req: Request, res: Response) {
+    const { z, x, y } = req.params;
+    const image = await getMapTile(Number(z), Number(x), Number(y));
+    res.type("png").send(image);
+  }
+
   async search(req: Request, res: Response) {
     const suggestions = await searchAddresses(req.body.text);
     return response(res, 200, {

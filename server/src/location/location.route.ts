@@ -40,6 +40,39 @@ const dailyLimit = rateLimit({
   },
 });
 
+const mapLimit = rateLimit({
+  windowMs: 60_000,
+  limit: 120,
+  keyGenerator: (_req, res) => res.locals.user.userId,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Map requests are busy. Please try again shortly",
+    data: null,
+  },
+});
+const mapDailyLimit = rateLimit({
+  windowMs: 24 * 60 * 60_000,
+  limit: 1000,
+  keyGenerator: () => "location-map-tiles",
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message:
+      "Map is unavailable for now. You can still enter your area manually",
+    data: null,
+  },
+});
+
+locationRouter.get(
+  "/tiles/:z/:x/:y",
+  authenticate,
+  mapLimit,
+  mapDailyLimit,
+  (req, res) => locationController.tile(req, res),
+);
 locationRouter.use(authenticate, accountLimit);
 locationRouter.post("/search", validateAddressSearch, dailyLimit, (req, res) =>
   locationController.search(req, res),

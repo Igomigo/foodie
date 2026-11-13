@@ -18,7 +18,9 @@ export default function AppHeader() {
   const { data: user } = useProfile();
   const location = user?.location;
   const displayLocation = location
-    ? [location.area || location.lga, location.city].filter(Boolean).join(", ")
+    ? [location.street1 || location.area || location.lga, location.city]
+        .filter(Boolean)
+        .join(", ")
     : "Location not set";
 
   return (

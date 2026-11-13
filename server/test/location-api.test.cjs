@@ -54,6 +54,10 @@ test("authenticated location lookup API", { timeout: 60000 }, async (t) => {
   let providerStatus = 200;
   let providerFailure = false;
   t.mock.method(global, "fetch", async (url) => {
+    if (new URL(url).origin === "https://maps.geoapify.com")
+      return new Response(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), {
+        headers: { "Content-Type": "image/png" },
+      });
     assert.equal(new URL(url).origin, "https://api.geoapify.com");
     providerCalls++;
     if (providerFailure)
@@ -342,6 +346,32 @@ test("authenticated location lookup API", { timeout: 60000 }, async (t) => {
       assert.equal(saved.location.state, "Lagos");
       assert.equal(saved.location.city, "Ikeja");
       assert.equal(saved.location.point, undefined);
+    },
+  );
+
+  await t.test(
+    "map tiles require authentication and return images without exposing the provider key",
+    async () => {
+      const path = base + "/tiles/3/2/2";
+      assert.equal((await httpFetch(path)).status, 401);
+      const result = await httpFetch(path, {
+        headers: { Authorization: `Bearer ${customer.token}` },
+      });
+      assert.equal(result.status, 200);
+      assert.ok(result.headers.get("content-type").startsWith("image/png"));
+      assert.equal(result.headers.get("cache-control"), "no-store");
+      assert.deepEqual(
+        Buffer.from(await result.arrayBuffer()),
+        Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+      );
+      assert.equal(
+        (
+          await httpFetch(base + "/tiles/20/0/0", {
+            headers: { Authorization: `Bearer ${customer.token}` },
+          })
+        ).status,
+        400,
+      );
     },
   );
 

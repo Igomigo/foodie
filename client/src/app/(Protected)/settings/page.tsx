@@ -74,17 +74,31 @@ export default function SettingsPage() {
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-foodie-paper/70">
               {location
-                ? [location.area, location.lga, location.city, location.state]
+                ? location.formattedAddress ||
+                  [
+                    location.street1,
+                    location.area,
+                    location.lga,
+                    location.city,
+                    location.state,
+                  ]
                     .filter(Boolean)
                     .join(", ")
                 : "Add your discovery location."}
             </p>
+            <Link
+              href="/location?returnTo=settings"
+              className="mt-5 flex min-h-11 items-center gap-4 text-xs font-semibold text-foodie-sage hover:underline"
+            >
+              {location?.street1 ? "Change my address" : "Add my address"}{" "}
+              <ArrowUpRight size={17} aria-hidden="true" />
+            </Link>
             <button
               type="button"
               onClick={() => setLocationOpen(true)}
-              className="mt-5 flex min-h-11 items-center gap-4 text-xs font-semibold text-foodie-sage hover:underline"
+              className="flex min-h-10 items-center gap-2 text-[10px] text-foodie-paper/70 hover:underline"
             >
-              Update my location <ArrowUpRight size={17} aria-hidden="true" />
+              Edit discovery area manually
             </button>
           </section>
           <Link

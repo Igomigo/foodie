@@ -153,7 +153,7 @@ These references inform the design; public integration APIs do not establish the
 
 #### Address lookup service
 
-Set `GEOAPIFY_API_KEY` in the server's untracked `.env` for address lookups. The key stays on the server. Authenticated HTTP endpoints expose the service; the client is not connected yet, so its existing live-location UI still uses BigDataCloud.
+Set `GEOAPIFY_API_KEY` in the server's untracked `.env` for address lookups. The key stays on the server. Authenticated HTTP endpoints expose the service; the client address-selection screen uses these endpoints for search and live-location lookup.
 
 `src/location/location.service.ts` exports two functions:
 
@@ -222,6 +222,14 @@ The server generates `confirmedAt` and `formattedAddress` from the reviewed comp
 
 Confirmed requests replace the destination, including optional fields: omitted apartment, postcode or neighbourhood details from the previous destination are removed. For compatibility, an older manual form that sends the identical point and area can omit detailed address fields without erasing them. Changing the point, region/area or supplied address details invalidates that preservation. A manual region-only replacement clears previous coordinates and address confirmation. This avoids mixing an old house address with a new city or pin.
 
-User profile and location-save responses use `Cache-Control: no-store`. Application logs for location saves omit URL query contents, recording only a fixed route label, method, status and timing. Existing records are not migrated. The client confirmation screen and coordinate-based kitchen discovery are separate next steps; the existing catalogue endpoints still require their documented city filters.
+User profile and location-save responses use `Cache-Control: no-store`. Application logs for location saves omit URL query contents, recording only a fixed route label, method, status and timing. Existing records are not migrated. The client now provides the confirmation screen; coordinate-based kitchen discovery remains separate work, and the existing catalogue endpoints still require their documented city filters.
 
 Storage follows [MongoDB's GeoJSON coordinate order](https://www.mongodb.com/docs/manual/reference/geojson/): longitude first, then latitude. The selected address remains an embedded user location rather than a separate address-book feature.
+
+### Address map tiles
+
+`GET /api/v1/locations/tiles/:z/:x/:y` serves PNG tiles through the authenticated session. Tile indices are range-checked for zoom 0–19. The backend calls Geoapify's high-density Positron raster endpoint with `GEOAPIFY_API_KEY`; neither that key nor the provider URL is returned to the browser. HTML, non-PNG responses, invalid signatures and oversized images are rejected with a safe unavailable error. The existing fixed-prefix location logger and `no-store` response policy apply.
+
+The provider module caches up to 64 public map images for an hour and staggers uncached tile requests by 300 ms, with a bounded six-second queue wait. Tile routes use separate limits: 120 requests per account per minute and 1,000 requests per 24-hour window for this server process. Cache hits conservatively count toward these request limits. These limits do not share geocoding counters and do not represent the provider's exact remaining balance; use shared counters before scaling server replicas.
+
+The client loads tiles through its authenticated HTTP service and Leaflet's grid-layer API, with attribution visible. The public OpenStreetMap tile server is not used. See [Geoapify map tiles](https://apidocs.geoapify.com/docs/maps/map-tiles/) for the raster URL format and attribution requirements.

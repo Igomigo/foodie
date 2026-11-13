@@ -33,11 +33,11 @@ export default function LocationDialog({
         className="max-h-[90svh] w-[calc(100%-2rem)] max-w-[520px] overflow-y-auto rounded-3xl border-foodie-line bg-foodie-paper p-6 text-foodie-ink sm:p-8"
       >
         <DialogTitle className="pr-10 text-2xl font-medium tracking-tight">
-          Your corner of the map.
+          Your discovery area.
         </DialogTitle>
         <DialogDescription className="mb-2 text-xs leading-relaxed text-foodie-muted">
-          Help us look closer to home. This is your discovery area; delivery
-          details come when you order.
+          Choose your area manually. For an exact address and map pin, use “Add
+          my address” in Settings.
         </DialogDescription>
         {user && (
           <LocationForm

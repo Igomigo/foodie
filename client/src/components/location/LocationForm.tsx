@@ -11,9 +11,7 @@ import {
 import { apiErrorMessage } from "@/lib/api-error";
 import { useUpdateLocation } from "@/hooks/useUpdateLocation";
 import LocationPicker from "./LocationPicker";
-import CurrentLocationButton, {
-  type DevicePosition,
-} from "./CurrentLocationButton";
+import type { DevicePosition } from "@/hooks/useCurrentLocation";
 
 export default function LocationForm({ onSaved }: { onSaved?: () => void }) {
   const { data: user } = useProfile();
@@ -40,17 +38,15 @@ export default function LocationForm({ onSaved }: { onSaved?: () => void }) {
   const [errors, setErrors] = useState<
     Partial<Record<keyof LocationInput, string>>
   >({});
-  const [detecting, setDetecting] = useState(false);
-  const [detectedMessage, setDetectedMessage] = useState("");
 
   return (
     <form
       noValidate
       className="space-y-5"
-      aria-busy={pending || detecting}
+      aria-busy={pending}
       onSubmit={(event) => {
         event.preventDefault();
-        if (pending || detecting) return;
+        if (pending) return;
         const result = locationInputSchema.safeParse(value);
         saveLocation.reset();
         if (!result.success) {
@@ -73,7 +69,7 @@ export default function LocationForm({ onSaved }: { onSaved?: () => void }) {
         );
       }}
     >
-      <fieldset disabled={pending || detecting} className="space-y-5">
+      <fieldset disabled={pending} className="space-y-5">
         <legend className="sr-only">Your discovery location</legend>
         <LocationPicker
           value={value}
@@ -85,79 +81,16 @@ export default function LocationForm({ onSaved }: { onSaved?: () => void }) {
               (value.lga && value.lga !== next.lga) ||
               value.area !== next.area;
             setValue(next);
-            setDetectedMessage("");
             if (changedKnownArea) setPosition({});
           }}
         />
-        <div className="rounded-2xl bg-foodie-sage/25 p-4">
-          <CurrentLocationButton
-            onPendingChange={setDetecting}
-            onLocated={(location, devicePosition) => {
-              setValue(location);
-              setPosition(devicePosition);
-              setErrors({});
-              saveLocation.reset();
-              const found = [
-                location.city,
-                location.state,
-                location.lga ? `${location.lga} LGA` : "",
-              ]
-                .filter(Boolean)
-                .join(", ");
-              const missing = [
-                !location.city && "city",
-                !location.lga && "LGA",
-              ].filter(Boolean);
-              setDetectedMessage(
-                missing.length
-                  ? `Found ${found}. Choose your ${missing.join(" and ")}, then review and save.`
-                  : `Found ${found}. Review the fields, then save.`,
-              );
-            }}
-          />
-          {detectedMessage && (
-            <p
-              role="status"
-              className="mt-3 text-xs leading-relaxed text-foodie-forest"
-            >
-              {detectedMessage}
-            </p>
-          )}
-          {position.point && (
-            <div
-              role="status"
-              className="mt-3 flex items-center justify-between gap-3 text-[11px] text-foodie-forest"
-            >
-              <span>
-                Device location ready
-                {position.accuracyMeters !== undefined
-                  ? ` · approx. ${Math.round(position.accuracyMeters)} m accuracy`
-                  : ""}
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setPosition({});
-                  setDetectedMessage("");
-                }}
-                className="min-h-9 underline"
-              >
-                Remove
-              </button>
-            </div>
-          )}
-        </div>
       </fieldset>
       {error && (
         <p role="alert" className="text-xs text-red-700">
           {error}
         </p>
       )}
-      <BrandButton
-        type="submit"
-        disabled={pending || detecting}
-        className="w-full"
-      >
+      <BrandButton type="submit" disabled={pending} className="w-full">
         {pending ? "Saving your location…" : "Save my location"}
       </BrandButton>
     </form>

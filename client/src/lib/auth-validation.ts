@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { locationFields, validateLocation } from "./location-validation";
 
 export const emailSchema = z
   .string()
@@ -39,7 +38,6 @@ export const signupSchema = z
       ),
     password: passwordSchema,
     confirmPassword: z.string().min(1, "Confirm your password"),
-    ...locationFields,
   })
   .superRefine((data, context) => {
     if (data.password !== data.confirmPassword)
@@ -48,7 +46,6 @@ export const signupSchema = z
         path: ["confirmPassword"],
         message: "Passwords do not match",
       });
-    validateLocation(data, context);
   });
 export type SignupFormData = z.infer<typeof signupSchema>;
 

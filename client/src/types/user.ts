@@ -9,6 +9,11 @@ export interface SavedLocation {
   lgaCode?: string;
   area?: string;
   street1?: string;
+  street2?: string;
+  zip?: string;
+  formattedAddress?: string;
+  pointSource?: "device" | "search" | "pin";
+  confirmedAt?: string;
   point?: { type: "Point"; coordinates: [number, number] };
   accuracyMeters?: number;
 }

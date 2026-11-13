@@ -13,6 +13,7 @@ import FormError from "@/components/auth/FormError";
 import BrandButton from "@/components/shared/BrandButton";
 import TextField from "@/components/shared/TextField";
 import PasswordField from "@/components/shared/PasswordField";
+import { getSavedProfile } from "@/lib/profile-session";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -40,7 +41,7 @@ export default function LoginPage() {
             ? saved
             : "/home";
         toast.success("Welcome back to Foodie");
-        router.replace(destination);
+        router.replace(getSavedProfile()?.location ? destination : "/location");
       },
     });
   }

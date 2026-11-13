@@ -22,204 +22,128 @@ const {
   getDailyDiscoverFeature,
   millisecondsUntilNextFoodDay,
 } = require("../src/data/discover-features.ts");
-const { matchDetectedLocation } = require("../src/lib/reverse-location.ts");
-const { lookupDeviceLocation } = require("../src/sevices/location.service.ts");
+const {
+  addressFromSuggestion,
+  addressFromSaved,
+  confirmedAddress,
+  addressDetailsSchema,
+} = require("../src/lib/address.ts");
+const { signupSchema } = require("../src/lib/auth-validation.ts");
 
-const benin = {
+const suggestion = {
+  formattedAddress: "12 Test Street, Benin City, Nigeria",
+  country: "Nigeria",
   countryCode: "NG",
-  principalSubdivision: "Edo State",
-  principalSubdivisionCode: "NG-ED",
-  city: "Benin City",
-  locality: "GRA",
-  lookupSource: "coordinates",
-  localityInfo: {
-    administrative: [
-      { name: "Nigeria", adminLevel: 2 },
-      { name: "Edo State", adminLevel: 4 },
-      { name: "Oredo Local Government Area", adminLevel: 6 },
-    ],
-  },
-};
-const devicePosition = {
-  coords: { latitude: 6.34, longitude: 5.62, accuracy: 25 },
+  state: "Edo State",
+  city: "Benin",
+  street: "Test Street",
+  houseNumber: "12",
+  point: { type: "Point", coordinates: [5.62, 6.34] },
+  precision: "building",
 };
 
-// Every network response below is mocked. Never send fixture coordinates to the free API.
-test("a successful location lookup replaces an old city's fields with canonical Benin labels", () => {
-  assert.deepEqual(matchDetectedLocation(benin), {
+test("mapped addresses populate known labels without guessing an LGA or house number", () => {
+  const draft = addressFromSuggestion(suggestion);
+  assert.equal(draft.state, "Edo");
+  assert.equal(draft.city, "Benin City");
+  assert.equal(draft.street1, "12 Test Street");
+  assert.equal(draft.lga, "");
+  assert.equal(
+    addressFromSuggestion({ ...suggestion, houseNumber: undefined }).street1,
+    "Test Street",
+  );
+  assert.equal(
+    addressFromSuggestion({
+      ...suggestion,
+      state: "Lagos State",
+      city: "Unlisted locality",
+    }).city,
+    "Unlisted locality",
+  );
+  assert.equal(
+    addressFromSuggestion({ ...suggestion, state: "Unknown" }).state,
+    "",
+  );
+  assert.equal(addressFromSuggestion(null).street1, "");
+});
+
+test("confirmation sends reviewed fields without stale IDs, display labels or GPS accuracy on search pins", () => {
+  const draft = addressFromSaved({
     country: "Nigeria",
     state: "Edo",
     city: "Benin City",
-    lga: "Oredo",
-    area: "GRA",
+    street1: "12 Test Street",
+    street2: "Flat 2",
+    zip: "300001",
+    cityId: 123,
+    confirmedAt: "2020-01-01",
+    formattedAddress: "Old display",
+    point: suggestion.point,
+    pointSource: "search",
+    accuracyMeters: 100,
   });
+  const parsed = addressDetailsSchema.parse({
+    ...draft,
+    city: "Unlisted locality",
+    street2: "",
+  });
+  const result = confirmedAddress(parsed, draft);
+  assert.equal(result.city, "Unlisted locality");
+  assert.equal(result.street2, undefined);
+  assert.equal(result.zip, "300001");
+  for (const field of [
+    "accuracyMeters",
+    "confirmedAt",
+    "formattedAddress",
+    "cityId",
+  ])
+    assert.equal(result[field], undefined);
+  assert.deepEqual(result.point, suggestion.point);
+  assert.throws(
+    () => confirmedAddress(parsed, { ...draft, point: undefined }),
+    /map first/,
+  );
+  const device = confirmedAddress(parsed, {
+    ...draft,
+    pointSource: "device",
+    accuracyMeters: 25,
+  });
+  assert.equal(device.accuracyMeters, 25);
+});
+
+test("review requires useful address details but not an LGA or postcode", () => {
+  const draft = addressFromSuggestion(suggestion);
+  assert.equal(addressDetailsSchema.safeParse(draft).success, true);
   assert.equal(
-    matchDetectedLocation({
-      ...benin,
-      city: "Benin",
-      principalSubdivisionCode: undefined,
-    }).city,
-    "Benin City",
+    addressDetailsSchema.safeParse({ ...draft, street1: "" }).success,
+    false,
+  );
+  assert.equal(
+    addressDetailsSchema.safeParse({ ...draft, state: "Unknown" }).success,
+    false,
+  );
+  assert.equal(
+    addressDetailsSchema.safeParse({ ...draft, lga: "Ikeja" }).success,
+    false,
   );
 });
 
-test("missing city/LGA coverage leaves fields blank instead of retaining Lagos or guessing", () => {
-  const result = matchDetectedLocation({
-    ...benin,
-    city: "Unlisted town",
-    locality: "Unlisted neighbourhood",
-    localityInfo: { administrative: [] },
-  });
-  assert.equal(result.state, "Edo");
-  assert.equal(result.city, "");
-  assert.equal(result.lga, "");
-  assert.equal(result.area, "Unlisted neighbourhood");
-  assert.equal(
-    matchDetectedLocation({ ...benin, locality: "Benin City" }).area,
-    "",
-  );
-});
-
-test("LGA matching tolerates punctuation and council suffixes without using city names", () => {
-  const fct = matchDetectedLocation({
-    countryCode: "NG",
-    principalSubdivision: "FCT",
-    city: "Abuja",
-    locality: "Abuja",
-    lookupSource: "reverseGeocoding",
-    localityInfo: {
-      administrative: [{ name: "Abuja Municipal Area Council", adminLevel: 6 }],
-    },
-  });
-  assert.equal(fct.state, "Federal Capital Territory");
-  assert.equal(fct.lga, "Abuja Municipal");
-  const lagos = {
-    countryCode: "NG",
-    principalSubdivisionCode: "NG-LA",
-    city: "Ikeja",
-    lookupSource: "coordinates",
+test("signup validates account details without requiring location dropdowns", () => {
+  const account = {
+    username: "Foodie",
+    email: "test@example.com",
+    phoneNumber: "08012345678",
+    password: "secret-password",
+    confirmPassword: "secret-password",
   };
-  assert.equal(matchDetectedLocation(lagos).lga, "");
+  assert.equal(signupSchema.safeParse(account).success, true);
   assert.equal(
-    matchDetectedLocation({
-      ...lagos,
-      localityInfo: {
-        administrative: [{ name: "Ibeju-Lekki", adminLevel: 6 }],
-      },
-    }).lga,
-    "Ibeju/Lekki",
+    signupSchema.safeParse({ ...account, confirmPassword: "wrong" }).success,
+    false,
   );
   assert.equal(
-    matchDetectedLocation({
-      ...lagos,
-      localityInfo: { administrative: [{ name: "Ikeja", adminLevel: 8 }] },
-    }).lga,
-    "",
-  );
-});
-
-test("ambiguous LGAs require confirmation, and foreign or IP-only results cannot fill a live location", () => {
-  const ambiguous = {
-    ...benin,
-    localityInfo: {
-      administrative: [
-        { name: "Oredo", adminLevel: 6 },
-        { name: "Egor", adminLevel: 6 },
-      ],
-    },
-  };
-  assert.equal(matchDetectedLocation(ambiguous).lga, "");
-  assert.throws(
-    () => matchDetectedLocation({ ...benin, countryCode: "GH" }),
-    /Nigeria/,
-  );
-  assert.throws(
-    () => matchDetectedLocation({ ...benin, lookupSource: "ipGeolocation" }),
-    /confirm/,
-  );
-  assert.throws(
-    () =>
-      matchDetectedLocation({
-        ...benin,
-        principalSubdivisionCode: "NG-XX",
-        principalSubdivision: "Unknown",
-      }),
-    /match the state/,
-  );
-});
-
-test("device lookup requests coordinates directly without credentials or an IP fallback", async (t) => {
-  const controller = new AbortController();
-  let calls = 0;
-  t.mock.method(global, "fetch", async (url, options) => {
-    calls++;
-    const request = new URL(url);
-    assert.equal(request.origin, "https://api.bigdatacloud.net");
-    assert.equal(request.searchParams.get("latitude"), "6.34");
-    assert.equal(request.searchParams.get("longitude"), "5.62");
-    assert.equal(options.signal, controller.signal);
-    assert.equal(options.credentials, "omit");
-    assert.equal(options.cache, "no-store");
-    return { ok: true, json: async () => benin };
-  });
-  assert.equal(
-    (await lookupDeviceLocation(devicePosition, controller.signal)).city,
-    "Benin City",
-  );
-  assert.equal(calls, 1);
-});
-
-test("unusable device coordinates never leave the browser", async (t) => {
-  let calls = 0;
-  t.mock.method(global, "fetch", async () => {
-    calls++;
-    throw new Error("must not be called");
-  });
-  for (const coords of [
-    { latitude: 91, longitude: 5, accuracy: 20 },
-    { latitude: 6, longitude: 181, accuracy: 20 },
-    { latitude: 6, longitude: 5, accuracy: 6000 },
-    { latitude: 6, longitude: 5, accuracy: NaN },
-  ]) {
-    await assert.rejects(
-      lookupDeviceLocation({ coords }, new AbortController().signal),
-      /too approximate/,
-    );
-  }
-  assert.equal(calls, 0);
-});
-
-test("network, provider and malformed-response failures offer manual entry", async (t) => {
-  const fetchMock = t.mock.method(global, "fetch", async () => {
-    throw new TypeError("Failed to fetch");
-  });
-  const signal = new AbortController().signal;
-  await assert.rejects(
-    lookupDeviceLocation(devicePosition, signal),
-    /choose your area manually/,
-  );
-  fetchMock.mock.mockImplementation(async () => ({ ok: false, status: 402 }));
-  await assert.rejects(
-    lookupDeviceLocation(devicePosition, signal),
-    /choose it manually/,
-  );
-  fetchMock.mock.mockImplementation(async () => ({
-    ok: true,
-    json: async () => ({ countryCode: 123 }),
-  }));
-  await assert.rejects(
-    lookupDeviceLocation(devicePosition, signal),
-    /choose your area manually/,
-  );
-  fetchMock.mock.mockImplementation(async () => ({
-    ok: true,
-    json: async () => {
-      throw new Error("Invalid JSON");
-    },
-  }));
-  await assert.rejects(
-    lookupDeviceLocation(devicePosition, signal),
-    /choose your area manually/,
+    signupSchema.safeParse({ ...account, phoneNumber: "123" }).success,
+    false,
   );
 });
 

@@ -4,7 +4,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 Copy `.env.example` to `.env.local` and set `NEXT_PUBLIC_API_URL` to the backend's `/api/v1` URL. The local server defaults to port 2000. Use the deployed HTTPS API URL in production.
 
-Authentication screens share the Foodie auth layout and ordinary Tailwind form components. Signup has account and neighbourhood steps. Both applications read the same versioned location catalogue in `../shared/data`; include that directory when building from a checkout. See its README for data attribution and refresh instructions. Password recovery uses the backend's Nodemailer/SMTP setup documented in `../server/README.md`.
+Authentication screens share the Foodie auth layout and ordinary Tailwind form components. Signup collects account details first, signs the customer in, then opens the dedicated `/location` step. If the automatic sign-in fails after account creation, it returns to login rather than retrying signup. Both applications read the same versioned location catalogue in `../shared/data`; include that directory when building from a checkout. See its README for data attribution and refresh instructions. Password recovery uses the backend's Nodemailer/SMTP setup documented in `../server/README.md`.
 
 First, run the development server:
 
@@ -41,15 +41,27 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## Signed-in experience
 
-`components/app` contains the shared header and mobile navigation. Profile data is shared through the React Query cache. Location editing is available only from Settings; the header displays the saved area beside the avatar. The shared editor lives in `components/location`. Discover uses the same food-inspiration catalogue and dish preview as the landing page. Search and category filters operate on that inspiration collection; no vendor/menu API is available yet. Kitchen availability and Ask Amaka are honest upcoming states. Settings wires the existing logout endpoint, then clears the local identity and returns to login.
+`components/app` contains the shared header and mobile navigation. Profile data is shared through the React Query cache. Settings links to the dedicated address flow and retains a separate manual discovery-area editor. The header displays the saved street or area beside the avatar. The shared editor lives in `components/location`. Discover uses the same food-inspiration catalogue and dish preview as the landing page. Search and category filters operate on that inspiration collection; the backend catalogue endpoints are available but Discover is not connected to them yet. Kitchen availability and Ask Amaka are honest upcoming states. Settings wires the existing logout endpoint, then clears the local identity and returns to login.
 
-Location pickers share the state/city directory and a separate 774-LGA snapshot under `shared/data`. Neighbourhood/street is optional free text. Device positioning is optional, requested only on a button click, and requires browser permission. The browser calls BigDataCloud’s free, keyless reverse-geocoding API with newly obtained, permissioned device coordinates to fill the form. Missing catalogue matches require manual selection. Never send stored or fixture coordinates to that free endpoint. See the shared data README for attribution, refresh scripts and accuracy limits.
+## Address selection
+
+`/location` offers “Use my current location” and address search, followed by one review screen. The full manual country/state/city/LGA form remains available from Settings and as an area-only fallback. Nigeria is the default; normal automatic selection does not require a chain of administrative dropdowns.
+
+`components/location` separates the flow, search, map, review form and artwork. It reuses the existing Tailwind tokens, shared fields and brand button. Transitions are brief and respect reduced motion. The map sits beside the form on desktop and above it on smaller screens.
+
+`useCurrentLocation` requests a fresh browser position only after a click, then calls the authenticated backend reverse-geocoding endpoint. Search uses `useAddressSearch`, with a 500 ms debounce, cancellation, user-specific query keys and no automatic retries, focus/reconnect refresh or persistent cache. Raw device coordinates and accuracy remain distinct from the provider's nearest address point. Broad area matches require an explicit pin adjustment. No matches, denied permission and provider failures leave manual input available.
+
+The review form asks for street/address, city and state. Apartment, neighbourhood, LGA and postcode appear under optional details. Missing house numbers are never fabricated. Changing a city/state requires another pin review; adjusting the pin preserves typed form details and drops old device accuracy. Saving sends only reviewed address fields and an explicit `confirmed: true`; server-owned display labels, IDs and timestamps are not echoed back. The server returns the saved profile through the shared query cache before navigation to Discover or Settings.
+
+Leaflet renders the map. Its custom tile loader calls Foodie's authenticated HTTP service, rather than putting the Geoapify key or access token in an image URL. The server requests Geoapify's high-density Positron PNG tiles with a bounded cache and request limits. Visible Leaflet, Geoapify and OpenStreetMap attribution is retained. Map fetches and object URLs are owned by the map lifecycle. An initial Nigeria-wide view is only an overview: it cannot be saved as a customer position; users must zoom to street level and select a pin. Map failures offer a reload and the area-only fallback.
+
+Only `NEXT_PUBLIC_API_URL` is needed on the client. Configure `GEOAPIFY_API_KEY` on the server. No browser-facing mapping key is required. Shared state/city and 774-LGA snapshots remain under `shared/data`, with their attribution and refresh instructions in its README. They are not proof of an address or delivery eligibility.
 
 ## Daily Discover banner
 
 Edit `src/data/discover-features.ts` to add or reorder complete banner entries: title, accent, supporting copy, language (`en` or Nigerian Pidgin `pcm`) and `dish: getDish("dish-id")`. Each entry reads its image, alt text and default fit from the shared dish catalogue in `src/data/food-inspiration.ts`, so they stay paired. Use optional `imageFit: "cover"` for wide food compositions with empty vertical margins. The ten entries alternate English and Pidgin; keep each headline pair in one language. The image and wording move together once per day at midnight in Africa/Lagos (UTC+1), including while the page stays open, and wrap at the end of the list. The rotation starts with the first entry on 23 October 2026. `src/data/assistant.ts` holds Amaka’s display name.
 
-Run `npm test` for the daily date boundary/cycle and reverse-location mapping/failure checks. All external lookup responses are mocked; the free provider must never receive fixture coordinates.
+Run `npm test` for the daily rotation, address preparation, signup validation and query-hook checks. External geocoding responses and browser positions are mocked.
 
 ## Food photography
 
@@ -70,6 +82,7 @@ Use TanStack Query v5 hooks in `src/hooks` for server data and actions. Componen
 - `useProfile`: one cache entry per user, shared across the header, Discover and Settings. A saved public snapshot is shown during the initial refresh; access tokens are excluded. Requests consume Query’s abort signal.
 - `useUpdateLocation`: cancels an older profile read, applies the server’s saved profile, then invalidates that profile query to verify it. Other profile consumers update immediately.
 - `useAuth` and `useLogout`: signup, login, recovery, reset and logout mutations. Successful login, password reset and logout cancel old reads and clear previous session caches. Failed logout preserves the session.
+- `useAddressSearch`: debounced address suggestions scoped to the current user, with abort signals and no background refetching.
 - `useCurrentLocation`: a button-triggered mutation that requests a fresh device position, then calls the reverse-geocoding service. It does not run on mount, focus or reconnect; unmounting aborts the lookup.
 
 Axios still attaches and refreshes authentication tokens; React Query manages the request lifecycle and cache. Public auth requests bypass the refresh interceptor, so an invalid password remains a form error.

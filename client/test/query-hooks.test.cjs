@@ -353,8 +353,7 @@ test("signup, recovery and reset hooks preserve payload contracts and reset clea
   });
   const payload = JSON.parse(requests[0].data);
   assert.equal(payload.phoneNumber, "+2348012345678");
-  assert.equal(payload.location.stateCode, "ED");
-  assert.equal(payload.location.lga, "Oredo");
+  assert.equal(payload.location, undefined);
   assert.equal(payload.role, "user");
   assert.equal(payload.confirmPassword, undefined);
   const recovery = render(useForgotPassword);
@@ -417,32 +416,32 @@ test("device lookup fills canonical fields and aborts when its component unmount
     },
   });
   let signal;
-  t.mock.method(global, "fetch", async (_url, options) => {
-    signal = options.signal;
-    return {
-      ok: true,
-      json: async () => ({
-        countryCode: "NG",
-        principalSubdivisionCode: "NG-ED",
-        principalSubdivision: "Edo State",
-        city: "Benin City",
-        locality: "GRA",
-        lookupSource: "coordinates",
-        localityInfo: {
-          administrative: [
-            { name: "Oredo Local Government Area", adminLevel: 6 },
-          ],
+  handleRequest = async (config) => {
+    signal = config.signal;
+    assert.equal(config.url, "/locations/reverse");
+    assert.deepEqual(JSON.parse(config.data), {
+      latitude: 6.34,
+      longitude: 5.62,
+    });
+    return response(config, {
+      data: {
+        address: {
+          city: "Benin City",
+          state: "Edo",
+          point: { type: "Point", coordinates: [5.63, 6.35] },
+          precision: "street",
         },
-      }),
-    };
-  });
+        attribution: { text: "Geoapify", url: "https://www.geoapify.com/" },
+      },
+    });
+  };
   const location = render(useCurrentLocation);
   let detected;
   await act(async () => {
     detected = await location.result.current.mutateAsync();
   });
   assert.equal(detected.location.city, "Benin City");
-  assert.equal(detected.location.lga, "Oredo");
+  assert.deepEqual(detected.location.point.coordinates, [5.63, 6.35]);
   assert.deepEqual(detected.position.point.coordinates, [5.62, 6.34]);
   location.unmount();
   assert.equal(signal.aborted, true);
@@ -478,4 +477,107 @@ test("a late browser position after unmount never starts the external lookup", a
     await done;
   });
   assert.equal(fetchMock.mock.callCount(), 0);
+});
+
+test("confirmed address saving explicitly sends confirmation and updates the profile cache", async () => {
+  handleRequest = async (config) => {
+    requests.push(config);
+    assert.equal(JSON.parse(config.data).confirmed, true);
+    return response(config, { data: updated });
+  };
+  const mutation = render(() => useUpdateLocation({ confirmed: true }));
+  await act(async () => {
+    await mutation.result.current.mutateAsync(updated.location);
+  });
+  assert.equal(
+    client.getQueryData(profileKey(saved.userId)).location.city,
+    "Benin City",
+  );
+});
+
+test("invalid device positions never call the backend", async () => {
+  const {
+    lookupDeviceLocation,
+  } = require("../src/sevices/location.service.ts");
+  handleRequest = async (config) => {
+    requests.push(config);
+    throw new Error("Unexpected request");
+  };
+  for (const coords of [
+    { latitude: 91, longitude: 5, accuracy: 20 },
+    { latitude: 6, longitude: 181, accuracy: 20 },
+    { latitude: 6, longitude: 5, accuracy: 6000 },
+  ])
+    await assert.rejects(
+      lookupDeviceLocation({ coords }, new AbortController().signal),
+      /too approximate/,
+    );
+  assert.equal(requests.length, 0);
+});
+
+test("address search is debounced and never refetches on focus or reconnect", async () => {
+  const { useAddressSearch } = require("../src/hooks/useAddressSearch.ts");
+  handleRequest = async (config) => {
+    requests.push(config);
+    return response(config, {
+      data: {
+        suggestions: [{ formattedAddress: "Test street" }],
+        attribution: { text: "Geoapify" },
+      },
+    });
+  };
+  const query = renderHook(({ text }) => useAddressSearch(text), {
+    initialProps: { text: "Ma" },
+    wrapper: ({ children }) =>
+      React.createElement(QueryClientProvider, { client }, children),
+  });
+  assert.equal(requests.length, 0);
+  query.rerender({ text: "Mar" });
+  query.rerender({ text: "Marina, Lagos" });
+  await waitFor(() =>
+    assert.equal(query.result.current.data?.suggestions.length, 1),
+  );
+  assert.equal(requests.length, 1);
+  assert.deepEqual(JSON.parse(requests[0].data), { text: "Marina, Lagos" });
+  await act(async () => {
+    focusManager.setFocused(false);
+    focusManager.setFocused(true);
+    onlineManager.setOnline(false);
+    onlineManager.setOnline(true);
+  });
+  assert.equal(requests.length, 1);
+  query.rerender({ text: "New search" });
+  assert.equal(
+    query.result.current.data,
+    undefined,
+    "old suggestions disappear immediately",
+  );
+  query.unmount();
+});
+
+test("cancelling a pending device lookup ignores a late permission result", async () => {
+  let deliverPosition;
+  Object.defineProperty(navigator, "geolocation", {
+    configurable: true,
+    value: {
+      getCurrentPosition: (success) => {
+        deliverPosition = success;
+      },
+    },
+  });
+  const location = render(useCurrentLocation);
+  let done;
+  act(() => {
+    done = location.result.current.mutateAsync().catch((error) => error);
+  });
+  await waitFor(() => assert.equal(typeof deliverPosition, "function"));
+  await act(async () => {
+    location.result.current.cancel();
+    deliverPosition({
+      coords: { latitude: 6.34, longitude: 5.62, accuracy: 20 },
+    });
+    await done;
+  });
+  assert.equal(requests.length, 0);
+  await waitFor(() => assert.equal(location.result.current.isPending, false));
 });

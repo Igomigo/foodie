@@ -21,7 +21,7 @@ export function useCurrentLocation() {
     mutationFn: async () => {
       if (!navigator.geolocation)
         throw new Error(
-          "Your browser doesn’t support location. You can enter your area above.",
+          "Your browser doesn’t support location. You can enter your address instead.",
         );
       const controller = new AbortController();
       request.current = controller;
@@ -34,8 +34,8 @@ export function useCurrentLocation() {
               reject(
                 new Error(
                   failure.code === 1
-                    ? "Location permission wasn’t granted. You can still enter your area above."
-                    : "We couldn’t find your position. Try again or enter your area above.",
+                    ? "Location permission wasn’t granted. You can enter your address instead."
+                    : "We couldn’t find your position. Try again or enter your address.",
                 ),
               );
             },
@@ -48,12 +48,10 @@ export function useCurrentLocation() {
       setStage("looking-up");
       const timeout = setTimeout(() => controller.abort(), 10000);
       try {
-        const location = await lookupDeviceLocation(
-          position,
-          controller.signal,
-        );
+        const result = await lookupDeviceLocation(position, controller.signal);
         return {
-          location,
+          location: result.address,
+          attribution: result.attribution,
           position: {
             point: {
               type: "Point",
@@ -68,7 +66,7 @@ export function useCurrentLocation() {
       } catch (error) {
         if (controller.signal.aborted)
           throw new Error(
-            "The area lookup took too long. Try again or choose your area manually.",
+            "The address lookup took too long. Try again or enter your address.",
           );
         throw error;
       } finally {
@@ -77,5 +75,9 @@ export function useCurrentLocation() {
     },
   });
 
-  return { ...mutation, stage };
+  function cancel() {
+    request.current?.abort();
+    mutation.reset();
+  }
+  return { ...mutation, stage, cancel };
 }
