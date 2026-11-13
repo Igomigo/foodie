@@ -151,4 +151,42 @@ These references inform the design; public integration APIs do not establish the
 
 ### Customer discovery location
 
+#### Address lookup service
+
+Set `GEOAPIFY_API_KEY` in the server's untracked `.env` for address lookups. The key stays on the server. Authenticated HTTP endpoints expose the service; the client is not connected yet, so its existing live-location UI still uses BigDataCloud.
+
+`src/location/location.service.ts` exports two functions:
+
+- `searchAddresses(text)` returns up to five Nigerian address suggestions for 3–200 characters of search text. Search uses an explicit Nigeria filter and bias, rather than the server's IP location.
+- `reverseGeocode({ latitude, longitude })` returns the nearest Nigerian address suggestion, or `null` if there is no supported result.
+
+`location.types.ts` defines Foodie's address format. `geoapify.ts` contains the provider HTTP calls and response mapping. Replacing Geoapify should change this boundary rather than callers throughout the application. No additional packages or provider registry are needed.
+
+Suggestions include a display address, available address components, GeoJSON `[longitude, latitude]`, and a broad precision category (`building`, `street`, `place` or `area`). Missing components remain missing. A building result is not a verified delivery address. Provider county labels are not automatically treated as LGAs. Canonical catalogue matching and conversion into a saved customer location are separate work.
+
+The matched point belongs to the provider's result and can differ from the submitted GPS position. Preserve the device's original point and reported accuracy separately when wiring the confirmation flow. An area-level result must not silently replace a customer's device point or be treated as a house-level match. Every result needs customer review before saving.
+
+Lookups validate inputs, time out after eight seconds and do not retry automatically. Empty or foreign results return no match. Missing configuration, provider errors, malformed responses and network failures return a safe `503` error without propagating credential-bearing request URLs. Display the returned `attribution` and any applicable map/data attribution when the UI is connected.
+
+References: [Geoapify address autocomplete](https://apidocs.geoapify.com/docs/geocoding/address-autocomplete/) and [reverse geocoding](https://apidocs.geoapify.com/docs/geocoding/reverse-geocoding/).
+
+Initial live checks on 13 November 2026 used public road/landmark searches in Benin City, Lagos and Abuja, with two reverse lookups at returned public result coordinates. Lagos and Abuja searches found street/place suggestions; “Ring Road, Benin City” returned only a city-level result. One reverse lookup returned a numbered address about 366 metres from the submitted point, on another street. These samples confirm that the integration works, not comprehensive Nigerian coverage or house-level accuracy. Customer correction and pin confirmation remain essential before this can be used as a delivery-address flow.
+
+#### Address lookup endpoints
+
+Both endpoints require an active session through `Authorization: Bearer <access-token>`. They return suggestions only and never update a saved destination. Address text and coordinates belong in the JSON body, not query parameters. Unknown body fields, query parameters, short/oversized search text, missing coordinates and numeric strings are rejected with `400`.
+
+| Method | Endpoint                    | JSON body                               | Response `data`                                       |
+| ------ | --------------------------- | --------------------------------------- | ----------------------------------------------------- |
+| POST   | `/api/v1/locations/search`  | `{ "text": "Marina, Lagos" }`           | `{ suggestions: AddressSuggestion[], attribution }`   |
+| POST   | `/api/v1/locations/reverse` | `{ "latitude": 6.3, "longitude": 5.6 }` | `{ address: AddressSuggestion \| null, attribution }` |
+
+Successful lookups return `200` with the usual `{ success, message, data }` envelope, including empty suggestions or `address: null` for no supported match. Authentication failures return `401`, rate limits return `429` with `Retry-After`, and provider/configuration failures use the existing generic `503` error response. Location responses include `Cache-Control: no-store`, including validation and authentication failures. Application request logs record only method, the fixed `/api/v1/locations` prefix, status and timing for these routes; they omit address text, coordinates, query strings and authorization headers. Configure deployment/proxy logs to follow the same privacy rule.
+
+The two endpoints share a limit of 30 requests per account per minute. Validated requests also share a conservative allowance of 2,500 attempts per 24-hour window for this server process; failures and empty results count because they can still consume provider credits. Invalid inputs do not consume that daily allowance. This allowance is an application setting in `location.route.ts`, not a guarantee about the Geoapify account's remaining credits. Calls outside these endpoints and map tiles have separate usage implications. Upstream rate limits still return the generic unavailable response; callers should debounce search and avoid automatic retries.
+
+The installed [express-rate-limit](https://express-rate-limit.mintlify.app/reference/configuration) uses in-memory counters here. Counters reset when this process restarts and are not coordinated across replicas. Use a shared store before scaling to multiple server instances or relying on persistent account-wide budgets. No Redis dependency has been added to location lookups for this initial single-process setup.
+
+#### Existing saved location endpoint
+
 `PATCH /api/v1/users/me/location` accepts `{ location }` and derives the customer ID from the authenticated session. It validates and canonicalizes state/city and optional LGA codes against the shared catalogues. New client signups and location edits ask for an LGA; the server preserves compatibility with existing clients that only send city/state. Optional `area` is a neighbourhood/street label (100 characters). Optional `point` is GeoJSON `[longitude, latitude]`, with optional `accuracyMeters`. Coordinates are range-checked device input, not a verified address or delivery promise. Replacing a location without coordinates removes old coordinates. No existing records are migrated.
