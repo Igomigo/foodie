@@ -16,6 +16,7 @@ import toast from "react-hot-toast";
 import Brand from "@/components/Brand";
 import { useProfile } from "@/hooks/useProfile";
 import { useCurrentLocation } from "@/hooks/useCurrentLocation";
+import { usePinAddress } from "@/hooks/usePinAddress";
 import { useUpdateLocation } from "@/hooks/useUpdateLocation";
 import {
   addressFromSaved,
@@ -37,11 +38,13 @@ function LocationFlow({ returnTo }: { returnTo: "/home" | "/settings" }) {
   const router = useRouter();
   const { data: user } = useProfile();
   const current = useCurrentLocation();
+  const pinAddress = usePinAddress();
   const save = useUpdateLocation({ confirmed: true });
   const [stage, setStage] = useState<"choose" | "search" | "review" | "area">(
     "choose",
   );
   const [draft, setDraft] = useState<AddressDraft>(emptyAddress);
+  const [addressUpdate, setAddressUpdate] = useState<AddressDraft | null>(null);
   const [revision, setRevision] = useState(0);
   const [pinEditing, setPinEditing] = useState(false);
   const [coarse, setCoarse] = useState(false);
@@ -58,6 +61,8 @@ function LocationFlow({ returnTo }: { returnTo: "/home" | "/settings" }) {
   function review(address: AddressSuggestion | null, selected?: AddressDraft) {
     const next = selected ?? addressFromSuggestion(address);
     setDraft(next);
+    setAddressUpdate(null);
+    pinAddress.cancel();
     setRevision((value) => value + 1);
     setCoarse(address?.precision === "area");
     setPinEditing(!next.point || address?.precision === "area");
@@ -117,17 +122,29 @@ function LocationFlow({ returnTo }: { returnTo: "/home" | "/settings" }) {
                 needsAdjustment={coarse}
                 disabled={save.isPending}
                 onEditingChange={setPinEditing}
+                onMoving={() => pinAddress.cancel()}
                 onSelect={(point) => {
-                  setDraft((previous) => ({
-                    ...previous,
-                    point,
-                    pointSource: "pin",
-                    accuracyMeters: undefined,
-                  }));
-                  setCoarse(false);
-                  setNotice(
-                    "Pin updated. Check that the address below matches your selected spot.",
-                  );
+                  function updateAddress(address: AddressSuggestion | null) {
+                    const next: AddressDraft = {
+                      ...addressFromSuggestion(address),
+                      point,
+                      pointSource: "pin",
+                    };
+                    setDraft(next);
+                    setAddressUpdate(next);
+                    setCoarse(false);
+                    setNotice(
+                      !address
+                        ? "We couldn’t find an address at this pin. Your pin is kept; add the correct address below."
+                        : (address.distanceMeters ?? 0) > 100
+                          ? "The mapped address is nearby. Check the street and house number for your exact pin."
+                          : "Address updated for your pin. Check the street and add your house number if it’s missing.",
+                    );
+                  }
+                  pinAddress.mutate(point, {
+                    onSuccess: updateAddress,
+                    onError: () => updateAddress(null),
+                  });
                 }}
               />
             ) : (
@@ -141,6 +158,7 @@ function LocationFlow({ returnTo }: { returnTo: "/home" | "/settings" }) {
                 disabled={save.isPending}
                 onClick={() => {
                   setStage("choose");
+                  pinAddress.cancel();
                   current.reset();
                   save.reset();
                   setFormError("");
@@ -356,6 +374,8 @@ function LocationFlow({ returnTo }: { returnTo: "/home" | "/settings" }) {
                     <AddressReview
                       key={`review-${revision}`}
                       draft={draft}
+                      addressUpdate={addressUpdate}
+                      lookingUp={pinAddress.isPending}
                       pinEditing={pinEditing}
                       pending={save.isPending}
                       error={
@@ -377,6 +397,7 @@ function LocationFlow({ returnTo }: { returnTo: "/home" | "/settings" }) {
                       }}
                       onDifferentAddress={() => {
                         save.reset();
+                        pinAddress.cancel();
                         setStage("search");
                       }}
                     />

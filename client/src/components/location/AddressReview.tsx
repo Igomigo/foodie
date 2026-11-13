@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDown, MapPin, ShieldCheck } from "lucide-react";
@@ -13,6 +13,8 @@ import BrandButton from "@/components/shared/BrandButton";
 
 export default function AddressReview({
   draft,
+  addressUpdate,
+  lookingUp,
   pinEditing,
   pending,
   error,
@@ -21,6 +23,8 @@ export default function AddressReview({
   onRegionChange,
 }: {
   draft: AddressDraft;
+  addressUpdate: AddressDraft | null;
+  lookingUp: boolean;
   pinEditing: boolean;
   pending: boolean;
   error: string;
@@ -36,20 +40,27 @@ export default function AddressReview({
     handleSubmit,
     watch,
     setValue,
+    getValues,
+    reset,
     formState: { errors },
   } = useForm<AddressDetails>({
     resolver: zodResolver(addressDetailsSchema),
     defaultValues: draft,
   });
+  useEffect(() => {
+    if (!addressUpdate) return;
+    // Apartment/instructions belong to the customer, not the map provider.
+    reset({ ...addressUpdate, street2: getValues("street2") });
+  }, [addressUpdate, reset, getValues]);
   const state = watch("state");
   return (
     <form
       noValidate
       onSubmit={handleSubmit(onSubmit)}
-      aria-busy={pending}
+      aria-busy={pending || lookingUp}
       className="space-y-5"
     >
-      <fieldset disabled={pending} className="space-y-4">
+      <fieldset disabled={pending || lookingUp} className="space-y-4">
         <legend className="sr-only">Confirm your address details</legend>
         <TextField
           id="street1"
@@ -177,11 +188,13 @@ export default function AddressReview({
           className="mt-0.5 shrink-0 text-foodie-action"
           aria-hidden="true"
         />
-        {pinEditing
-          ? "Set your pin on the map before confirming."
-          : !draft.point
-            ? "Choose a pin on the map for this address."
-            : "Check that the pin and address both point to the place you have in mind."}
+        {lookingUp
+          ? "Finding the address beneath your pin…"
+          : pinEditing
+            ? "Finish checking your map pin before confirming."
+            : !draft.point
+              ? "Choose a pin on the map for this address."
+              : "Check that the pin and address both point to the place you have in mind."}
       </p>
       {error && (
         <p
@@ -194,7 +207,7 @@ export default function AddressReview({
       <BrandButton
         type="submit"
         className="w-full"
-        disabled={pending || pinEditing || !draft.point}
+        disabled={pending || lookingUp || pinEditing || !draft.point}
       >
         {pending ? "Saving your address…" : "Confirm this address"}
       </BrandButton>

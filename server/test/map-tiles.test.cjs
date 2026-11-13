@@ -29,13 +29,32 @@ test("the server fetches only PNG map tiles and reuses cached public map imagery
   });
   const fetch = t.mock.method(global, "fetch", async (url, options) => {
     assert.equal(url.origin, "https://maps.geoapify.com");
-    assert.equal(url.pathname, "/v1/tile/positron/3/2/2@2x.png");
+    assert.equal(url.pathname, "/v1/tile/osm-bright/3/2/2@2x.png");
     assert.equal(url.searchParams.get("apiKey"), "synthetic-map-key");
     assert.equal(options.redirect, "error");
     return new Response(png, { headers: { "Content-Type": "image/png" } });
   });
   assert.deepEqual(await getMapTile(3, 2, 2), png);
   assert.deepEqual(await getMapTile(3, 2, 2), png);
+  assert.equal(fetch.mock.callCount(), 1);
+});
+
+test("simultaneous requests for the same tile share one provider request", async (t) => {
+  const previousKey = process.env.GEOAPIFY_API_KEY;
+  process.env.GEOAPIFY_API_KEY = "synthetic-map-key";
+  t.after(() => {
+    if (previousKey === undefined) delete process.env.GEOAPIFY_API_KEY;
+    else process.env.GEOAPIFY_API_KEY = previousKey;
+  });
+  const fetch = t.mock.method(
+    global,
+    "fetch",
+    async () => new Response(png, { headers: { "Content-Type": "image/png" } }),
+  );
+  const replies = await Promise.all(
+    Array.from({ length: 8 }, () => getMapTile(4, 4, 4)),
+  );
+  for (const reply of replies) assert.deepEqual(reply, png);
   assert.equal(fetch.mock.callCount(), 1);
 });
 

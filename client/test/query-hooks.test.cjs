@@ -32,14 +32,23 @@ require.extensions[".ts"] = (module, filename) => {
       module: ts.ModuleKind.CommonJS,
       target: ts.ScriptTarget.ES2020,
       esModuleInterop: true,
+      jsx: ts.JsxEmit.ReactJSX,
     },
     fileName: filename,
   });
   module._compile(outputText, filename);
 };
+require.extensions[".tsx"] = require.extensions[".ts"];
 
 const React = require("react");
-const { renderHook, act, waitFor, cleanup } = require("@testing-library/react");
+const {
+  renderHook,
+  render: renderComponent,
+  fireEvent,
+  act,
+  waitFor,
+  cleanup,
+} = require("@testing-library/react");
 const {
   QueryClientProvider,
   onlineManager,
@@ -61,6 +70,9 @@ const {
 const { useLogout } = require("../src/hooks/useLogout.ts");
 const { useUpdateLocation } = require("../src/hooks/useUpdateLocation.ts");
 const { useCurrentLocation } = require("../src/hooks/useCurrentLocation.ts");
+const { usePinAddress } = require("../src/hooks/usePinAddress.ts");
+const AddressReview =
+  require("../src/components/location/AddressReview.tsx").default;
 const saved = {
   userId: "customer-one",
   email: "one@example.com",
@@ -580,4 +592,207 @@ test("cancelling a pending device lookup ignores a late permission result", asyn
   });
   assert.equal(requests.length, 0);
   await waitFor(() => assert.equal(location.result.current.isPending, false));
+});
+
+test("pin lookup uses the chosen coordinates and ignores a late response from a previous pin", async () => {
+  const first = deferred();
+  const second = deferred();
+  handleRequest = (config) => {
+    requests.push(config);
+    return requests.length === 1 ? first.promise : second.promise;
+  };
+  const { result } = render(usePinAddress);
+  assert.equal(requests.length, 0);
+  let applied;
+  act(() =>
+    result.current.mutate(
+      { type: "Point", coordinates: [5.62, 6.34] },
+      {
+        onSuccess: (address) => {
+          applied = address;
+        },
+      },
+    ),
+  );
+  await waitFor(() => assert.equal(requests.length, 1));
+  assert.deepEqual(JSON.parse(requests[0].data), {
+    latitude: 6.34,
+    longitude: 5.62,
+  });
+  act(() => result.current.cancel());
+  assert.equal(requests[0].signal.aborted, true);
+  act(() =>
+    result.current.mutate(
+      { type: "Point", coordinates: [3.39, 6.44] },
+      {
+        onSuccess: (address) => {
+          applied = address;
+        },
+      },
+    ),
+  );
+  await waitFor(() => assert.equal(requests.length, 2));
+  await act(async () =>
+    second.resolve(
+      response(requests[1], { data: { address: { street: "New street" } } }),
+    ),
+  );
+  await waitFor(() => assert.equal(applied.street, "New street"));
+  await act(async () =>
+    first.resolve(
+      response(requests[0], { data: { address: { street: "Old street" } } }),
+    ),
+  );
+  assert.equal(applied.street, "New street");
+  assert.equal(requests.length, 2);
+});
+
+test("a failed pin lookup is not retried automatically", async () => {
+  handleRequest = (config) => {
+    requests.push(config);
+    return rejectRequest(config, 503);
+  };
+  const { result } = render(usePinAddress);
+  act(() =>
+    result.current.mutate({ type: "Point", coordinates: [5.62, 6.34] }),
+  );
+  await waitFor(() => assert.equal(result.current.isError, true));
+  assert.equal(requests.length, 1);
+});
+
+test("a resolved pin replaces stale address fields, preserves apartment details and blocks saving during lookup", async () => {
+  const draft = {
+    country: "Nigeria",
+    state: "Lagos",
+    city: "Ikeja",
+    lga: "Ikeja",
+    area: "Old area",
+    street1: "12 Old Street",
+    street2: "",
+    zip: "100001",
+    point: { type: "Point", coordinates: [3.39, 6.44] },
+    pointSource: "search",
+  };
+  const props = {
+    draft,
+    addressUpdate: null,
+    lookingUp: false,
+    pinEditing: false,
+    pending: false,
+    error: "",
+    onSubmit: () => {},
+    onDifferentAddress: () => {},
+    onRegionChange: () => {},
+  };
+  const view = renderComponent(React.createElement(AddressReview, props));
+  fireEvent.click(
+    view.getByRole("button", { name: /Apartment, neighbourhood/ }),
+  );
+  fireEvent.change(view.getByLabelText("Apartment / extra address details"), {
+    target: { value: "Flat 2, upstairs" },
+  });
+  view.rerender(
+    React.createElement(AddressReview, { ...props, lookingUp: true }),
+  );
+  assert.equal(
+    view.getByRole("button", { name: "Confirm this address" }).disabled,
+    true,
+  );
+  assert.equal(
+    view.getByLabelText("House number & street").closest("fieldset").disabled,
+    true,
+  );
+  const next = {
+    ...draft,
+    state: "Edo",
+    city: "Benin City",
+    street1: "Airport Road",
+    area: "",
+    lga: "",
+    zip: "",
+    pointSource: "pin",
+  };
+  view.rerender(
+    React.createElement(AddressReview, {
+      ...props,
+      draft: next,
+      addressUpdate: next,
+    }),
+  );
+  await waitFor(() =>
+    assert.equal(
+      view.getByLabelText("House number & street").value,
+      "Airport Road",
+    ),
+  );
+  assert.equal(view.getByLabelText("City or town").value, "Benin City");
+  assert.equal(view.getByLabelText("State / FCT").value, "Edo");
+  assert.equal(view.getByLabelText("Local government area").value, "");
+  assert.equal(view.getByLabelText("Postcode").value, "");
+  assert.equal(
+    view.getByLabelText("Apartment / extra address details").value,
+    "Flat 2, upstairs",
+  );
+  assert.equal(
+    view.getByRole("button", { name: "Confirm this address" }).disabled,
+    false,
+  );
+});
+
+test("map tiles recover once from a transient failure and release their image URL", async (t) => {
+  const { createAddressTiles } = require("../src/lib/address-map-tiles.ts");
+  const L = require("leaflet");
+  const revoked = [];
+  t.mock.method(URL, "createObjectURL", () => "blob:test-map-tile");
+  t.mock.method(URL, "revokeObjectURL", (url) => revoked.push(url));
+  handleRequest = (config) => {
+    requests.push(config);
+    return requests.length === 1
+      ? rejectRequest(config, 503)
+      : Promise.resolve(response(config, new Blob(["synthetic-image"])));
+  };
+  const layer = createAddressTiles(L);
+  let loaded = false;
+  const tile = layer.createTile({ z: 17, x: 1, y: 1 }, (error) => {
+    assert.equal(error, undefined);
+    loaded = true;
+  });
+  await waitFor(() => assert.equal(tile.src, "blob:test-map-tile"));
+  assert.equal(requests.length, 2);
+  tile.onload();
+  assert.equal(loaded, true);
+  assert.deepEqual(revoked, ["blob:test-map-tile"]);
+  layer.fire("tileunload", { tile });
+});
+
+test("map tiles do not retry rate limits, and unloading aborts an unfinished request", async () => {
+  const { createAddressTiles } = require("../src/lib/address-map-tiles.ts");
+  const L = require("leaflet");
+  handleRequest = (config) => {
+    requests.push(config);
+    return rejectRequest(config, 429);
+  };
+  const layer = createAddressTiles(L);
+  let failure;
+  layer.createTile({ z: 17, x: 2, y: 2 }, (error) => {
+    failure = error;
+  });
+  await waitFor(() => assert.ok(failure));
+  assert.equal(requests.length, 1);
+  const pending = deferred();
+  handleRequest = (config) => {
+    requests.push(config);
+    return pending.promise;
+  };
+  let completed = false;
+  const tile = layer.createTile({ z: 17, x: 3, y: 3 }, () => {
+    completed = true;
+  });
+  await waitFor(() => assert.equal(requests.length, 2));
+  layer.fire("tileunload", { tile });
+  assert.equal(requests[1].signal.aborted, true);
+  await act(async () =>
+    pending.resolve(response(requests[1], new Blob(["synthetic-image"]))),
+  );
+  assert.equal(completed, false);
 });
