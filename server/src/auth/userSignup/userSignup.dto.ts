@@ -4,6 +4,7 @@ import {
   emailSchema,
   locationSchema,
   passwordSchema,
+  phoneSchema,
 } from "../auth.validation";
 
 export interface UserSignupInput {
@@ -22,7 +23,7 @@ export const userSignupSchema = Joi.object({
   username: Joi.string().trim(),
   firstName: Joi.string().trim(),
   lastName: Joi.string().trim(),
-  phoneNumber: Joi.string().trim(),
+  phoneNumber: phoneSchema,
   location: locationSchema,
   role: Joi.string().valid("user"),
 });

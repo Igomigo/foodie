@@ -20,6 +20,7 @@ export default function SignupForm() {
   const pending = signup.isPending || login.isPending;
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<SignupFormData>({
@@ -80,7 +81,12 @@ export default function SignupForm() {
       >
         <fieldset disabled={pending} className="space-y-4.5">
           <legend className="sr-only">Your account details</legend>
-          <SignupDetails register={register} errors={errors} />
+          <SignupDetails
+            register={register}
+            control={control}
+            errors={errors}
+            disabled={pending}
+          />
         </fieldset>
         <FormError
           message={

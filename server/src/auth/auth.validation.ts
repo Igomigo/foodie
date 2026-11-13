@@ -1,10 +1,24 @@
 import Joi from "joi";
+import { parsePhoneNumberFromString } from "libphonenumber-js/max";
 import {
   findNigerianLocation,
   findLocalGovernment,
 } from "../location/location.catalogue";
 
 export const emailSchema = Joi.string().trim().lowercase().email().required();
+export const phoneSchema = Joi.string()
+  .trim()
+  .max(50)
+  .custom((value: string, helpers) => {
+    const phone = parsePhoneNumberFromString(value, {
+      defaultCountry: "NG",
+      extract: false,
+    });
+    return phone?.isValid() && !phone.ext
+      ? phone.number
+      : helpers.error("any.invalid");
+  })
+  .messages({ "any.invalid": "Enter a valid phone number" });
 export const passwordSchema = Joi.string()
   .min(6)
   .required()

@@ -143,6 +143,41 @@ test("backend account flows", { timeout: 60000 }, async (t) => {
   });
 
   await t.test(
+    "signup validates and stores phone numbers in international format",
+    async () => {
+      let index = 0;
+      for (const [phoneNumber, expected] of [
+        ["0801 234 5678", "+2348012345678"],
+        ["+234 801 234 5678", "+2348012345678"],
+        ["+44 20 7946 0018", "+442079460018"],
+      ]) {
+        const result = await signup(`phone-valid-${index++}@example.com`, {
+          phoneNumber,
+        });
+        assert.equal(result.status, 201);
+        assert.equal(result.body.data.phoneNumber, expected);
+        const stored = await UserModel.findById(result.body.data._id);
+        assert.equal(stored.phoneNumber, expected);
+      }
+      for (const phoneNumber of [
+        "",
+        "+234",
+        "123",
+        "+2341234567890",
+        "+99912345678",
+        "Call +2348012345678",
+        "+2348012345678 ext. 2",
+        8012345678,
+      ]) {
+        const email = `phone-invalid-${index++}@example.com`;
+        const result = await signup(email, { phoneNumber });
+        assert.equal(result.status, 400);
+        assert.equal(await UserModel.countDocuments({ email }), 0);
+      }
+    },
+  );
+
+  await t.test(
     "login sets an HttpOnly refresh cookie and returns safe identity data",
     async () => {
       for (const email of ["missing@example.com", "buyer@example.com"]) {

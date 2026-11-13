@@ -1,4 +1,8 @@
 import { z } from "zod";
+import {
+  parsePhoneNumberFromString,
+  type CountryCode,
+} from "libphonenumber-js/max";
 
 export const emailSchema = z
   .string()
@@ -17,9 +21,15 @@ export const loginSchema = z.object({
 });
 export type LoginFormData = z.infer<typeof loginSchema>;
 
-export function normalizePhone(phone: string) {
-  const digits = phone.replace(/[\s()+-]/g, "");
-  return digits.startsWith("0") ? `+234${digits.slice(1)}` : `+${digits}`;
+export function normalizePhone(
+  value: string,
+  defaultCountry: CountryCode = "NG",
+) {
+  const phone = parsePhoneNumberFromString(value, {
+    defaultCountry,
+    extract: false,
+  });
+  return phone?.isValid() && !phone.ext ? phone.number : undefined;
 }
 
 export const signupSchema = z
@@ -33,8 +43,8 @@ export const signupSchema = z
       .string()
       .trim()
       .refine(
-        (phone) => /^\+234[789]\d{9}$/.test(normalizePhone(phone)),
-        "Enter a valid Nigerian phone number",
+        (phone) => !!normalizePhone(phone),
+        "Enter a valid phone number for your selected country",
       ),
     password: passwordSchema,
     confirmPassword: z.string().min(1, "Confirm your password"),

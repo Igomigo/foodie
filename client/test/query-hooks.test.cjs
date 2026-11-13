@@ -796,3 +796,109 @@ test("map tiles do not retry rate limits, and unloading aborts an unfinished req
   );
   assert.equal(completed, false);
 });
+
+test("the phone picker defaults to Nigeria, supports national-number paste and switches countries", async () => {
+  const PhoneField = require("../src/components/shared/PhoneField.tsx").default;
+  let value;
+  function Form() {
+    const [phone, setPhone] = React.useState("");
+    return React.createElement(PhoneField, {
+      id: "test-phone",
+      name: "phoneNumber",
+      value: phone,
+      onChange: (next) => {
+        value = next;
+        setPhone(next);
+      },
+      onBlur: () => {},
+    });
+  }
+  const view = renderComponent(React.createElement(Form));
+  const input = view.getByLabelText("Phone number");
+  assert.equal(input.type, "tel");
+  assert.equal(input.autocomplete, "tel");
+  assert.equal(input.value.replace(/\D/g, ""), "234");
+  fireEvent.change(input, { target: { value: "+234 0" } });
+  assert.equal(input.value.replace(/\D/g, ""), "234");
+  fireEvent.paste(input, { clipboardData: { getData: () => "0801 234 5678" } });
+  await waitFor(() => assert.equal(value, "+2348012345678"));
+  assert.equal(input.value.replace(/\D/g, ""), "2348012345678");
+  fireEvent.paste(input, {
+    clipboardData: { getData: () => "+44 20 7946 0018" },
+  });
+  fireEvent.paste(input, { clipboardData: { getData: () => "020 7946 0018" } });
+  assert.equal(value, "+442079460018");
+  fireEvent.paste(input, {
+    clipboardData: { getData: () => "+2348012345678" },
+  });
+  fireEvent.click(view.getByRole("button", { name: /Nigeria/ }));
+  fireEvent.change(view.getByPlaceholderText("Search country"), {
+    target: { value: "United Kingdom" },
+  });
+  fireEvent.click(view.getByRole("option", { name: /United Kingdom/ }));
+  fireEvent.paste(input, { clipboardData: { getData: () => "020 7946 0018" } });
+  await waitFor(() => assert.equal(value, "+442079460018"));
+  assert.equal(input.value.replace(/\D/g, ""), "442079460018");
+});
+
+test("the controlled phone field reports validation errors and receives form focus", async () => {
+  const PhoneField = require("../src/components/shared/PhoneField.tsx").default;
+  const { useForm, Controller } = require("react-hook-form");
+  const { zodResolver } = require("@hookform/resolvers/zod");
+  const { signupSchema } = require("../src/lib/auth-validation.ts");
+  let submitted;
+  function Form() {
+    const {
+      control,
+      handleSubmit,
+      formState: { errors },
+    } = useForm({
+      resolver: zodResolver(signupSchema),
+      defaultValues: {
+        username: "Test user",
+        email: "test@example.com",
+        password: "test-password",
+        confirmPassword: "test-password",
+        phoneNumber: "",
+      },
+    });
+    return React.createElement(
+      "form",
+      {
+        noValidate: true,
+        onSubmit: handleSubmit((data) => {
+          submitted = data;
+        }),
+      },
+      React.createElement(Controller, {
+        name: "phoneNumber",
+        control,
+        render: ({ field }) =>
+          React.createElement(PhoneField, {
+            id: "test-phone",
+            name: field.name,
+            value: field.value,
+            onChange: field.onChange,
+            onBlur: field.onBlur,
+            inputRef: field.ref,
+            error: errors.phoneNumber?.message,
+          }),
+      }),
+      React.createElement("button", { type: "submit" }, "Continue"),
+    );
+  }
+  const view = renderComponent(React.createElement(Form));
+  fireEvent.click(view.getByRole("button", { name: "Continue" }));
+  await waitFor(() =>
+    assert.match(view.getByRole("alert").textContent, /valid phone number/),
+  );
+  const input = view.getByLabelText("Phone number");
+  assert.equal(document.activeElement, input);
+  assert.equal(input.getAttribute("aria-invalid"), "true");
+  assert.equal(submitted, undefined);
+  fireEvent.paste(input, {
+    clipboardData: { getData: () => "+2348012345678" },
+  });
+  fireEvent.click(view.getByRole("button", { name: "Continue" }));
+  await waitFor(() => assert.equal(submitted.phoneNumber, "+2348012345678"));
+});

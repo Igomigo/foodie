@@ -1,14 +1,24 @@
-import type { FieldErrors, UseFormRegister } from "react-hook-form";
+import {
+  Controller,
+  type Control,
+  type FieldErrors,
+  type UseFormRegister,
+} from "react-hook-form";
 import type { SignupFormData } from "@/lib/auth-validation";
 import TextField from "@/components/shared/TextField";
 import PasswordField from "@/components/shared/PasswordField";
+import PhoneField from "@/components/shared/PhoneField";
 
 export default function SignupDetails({
   register,
   errors,
+  control,
+  disabled,
 }: {
   register: UseFormRegister<SignupFormData>;
   errors: FieldErrors<SignupFormData>;
+  control: Control<SignupFormData>;
+  disabled: boolean;
 }) {
   return (
     <>
@@ -31,16 +41,21 @@ export default function SignupDetails({
         {...register("email")}
         error={errors.email?.message}
       />
-      <TextField
-        required
-        id="phoneNumber"
-        label="Phone number"
-        type="tel"
-        autoComplete="tel"
-        placeholder="0801 234 5678"
-        hint="Use your Nigerian number, starting with 0 or +234."
-        {...register("phoneNumber")}
-        error={errors.phoneNumber?.message}
+      <Controller
+        name="phoneNumber"
+        control={control}
+        render={({ field }) => (
+          <PhoneField
+            id="phoneNumber"
+            name={field.name}
+            value={field.value}
+            onChange={field.onChange}
+            onBlur={field.onBlur}
+            inputRef={field.ref}
+            disabled={disabled}
+            error={errors.phoneNumber?.message}
+          />
+        )}
       />
       <PasswordField
         required

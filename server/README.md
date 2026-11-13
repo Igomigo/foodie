@@ -41,6 +41,8 @@ The existing `/api/v1/auth/user-signup`, `/vendor-signup`, `/login`, `/refresh-t
 
 Access tokens expire after five minutes; refresh tokens after seven days. Token verification checks the signing algorithm, token purpose, and user ID. Protected requests load current roles and account status from MongoDB. `GET /api/v1/users/:id` requires the account owner or an admin. API responses explicitly select public user fields.
 
+Signup phone fields use the shared `phoneSchema` in `auth.validation.ts`. When provided, customer `phoneNumber` and vendor `businessPhone` must pass `libphonenumber-js/max` validation and are normalized to E.164 before persistence. Local numbers default to Nigeria; explicit international country codes are accepted. Extensions, malformed text and incomplete numbers are rejected. These fields remain optional in the backend contract; the customer signup UI requires a phone number. Existing records are not migrated, and number ownership is not verified by this format check.
+
 Logout clears the refresh cookie. Issued tokens are stateless: copied refresh tokens are not revoked by logout, and access tokens remain usable until expiry unless the account is disabled. Per-device sessions and refresh-token rotation are future authentication work. Legacy tokens without a purpose claim require signing in again after deployment.
 
 ### Password recovery

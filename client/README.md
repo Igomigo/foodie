@@ -43,6 +43,8 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 `components/app` contains the shared header and mobile navigation. Profile data is shared through the React Query cache. Settings links to the dedicated address flow and retains a separate manual discovery-area editor. The header displays the saved street or area beside the avatar. The shared editor lives in `components/location`. Discover uses the same food-inspiration catalogue and dish preview as the landing page. Search and category filters operate on that inspiration collection; the backend catalogue endpoints are available but Discover is not connected to them yet. Kitchen availability and Ask Amaka are honest upcoming states. Settings wires the existing logout endpoint, then clears the local identity and returns to login.
 
+The shared `PhoneField` uses `react-phone-input-2` with Nigeria selected by default, searchable country codes and the existing field styles. React Hook Form connects it through `Controller`. Local Nigerian numbers can be typed or pasted; international numbers use the selected country code. Both client and server use `libphonenumber-js/max` to validate numbers and normalize submitted values to E.164 (for example, `0801 234 5678` becomes `+2348012345678`). This validates number format, not ownership or reachability.
+
 ## Address selection
 
 `/location` offers “Use my current location” and address search, followed by one review screen. The full manual country/state/city/LGA form remains available from Settings and as an area-only fallback. Nigeria is the default; normal automatic selection does not require a chain of administrative dropdowns.

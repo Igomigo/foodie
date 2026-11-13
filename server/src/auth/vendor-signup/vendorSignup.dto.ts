@@ -4,6 +4,7 @@ import {
   emailSchema,
   locationSchema,
   passwordSchema,
+  phoneSchema,
 } from "../auth.validation";
 
 export interface VendorSignupInput {
@@ -18,7 +19,7 @@ export const vendorSignupSchema = Joi.object({
   email: emailSchema,
   password: passwordSchema,
   businessName: Joi.string().trim().required(),
-  businessPhone: Joi.string().trim(),
+  businessPhone: phoneSchema,
   location: locationSchema.required(),
   role: Joi.string().valid("vendor"),
 });

@@ -10,11 +10,13 @@ const authApi = axios.create({
 });
 
 export async function signUp(data: SignupFormData) {
+  const phoneNumber = normalizePhone(data.phoneNumber);
+  if (!phoneNumber) throw new Error("Enter a valid phone number");
   await authApi.post("/auth/user-signup", {
     username: data.username,
     email: data.email,
     password: data.password,
-    phoneNumber: normalizePhone(data.phoneNumber),
+    phoneNumber,
     role: "user",
   });
 }

@@ -28,7 +28,10 @@ const {
   confirmedAddress,
   addressDetailsSchema,
 } = require("../src/lib/address.ts");
-const { signupSchema } = require("../src/lib/auth-validation.ts");
+const {
+  signupSchema,
+  normalizePhone,
+} = require("../src/lib/auth-validation.ts");
 
 const suggestion = {
   formattedAddress: "12 Test Street, Benin City, Nigeria",
@@ -145,6 +148,27 @@ test("signup validates account details without requiring location dropdowns", ()
     signupSchema.safeParse({ ...account, phoneNumber: "123" }).success,
     false,
   );
+});
+
+test("phone numbers use one international format and reject incomplete or malformed input", () => {
+  for (const [input, expected] of [
+    ["0801 234 5678", "+2348012345678"],
+    ["2348012345678", "+2348012345678"],
+    ["+234 801 234 5678", "+2348012345678"],
+    ["+44 20 7946 0018", "+442079460018"],
+    ["+1 (213) 373-4253", "+12133734253"],
+  ])
+    assert.equal(normalizePhone(input), expected);
+  for (const input of [
+    "",
+    "+234",
+    "123",
+    "+2341234567890",
+    "+99912345678",
+    "Call +2348012345678",
+    "+2348012345678 ext. 2",
+  ])
+    assert.equal(normalizePhone(input), undefined, input);
 });
 
 test("the food banner changes at midnight in Nigeria, rather than UTC or the device's timezone", () => {
