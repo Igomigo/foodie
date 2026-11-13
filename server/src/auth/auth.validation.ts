@@ -15,13 +15,13 @@ export const passwordSchema = Joi.string()
   )
   .messages({ "any.invalid": "Password must be at most 72 bytes" });
 
-export const locationSchema = Joi.object({
-  country: Joi.string().trim().required(),
-  state: Joi.string().trim().required(),
-  city: Joi.string().trim().required(),
-  street1: Joi.string().trim(),
-  street2: Joi.string().trim(),
-  zip: Joi.string().trim(),
+export const locationFields = {
+  country: Joi.string().trim().max(100).required(),
+  state: Joi.string().trim().max(100).required(),
+  city: Joi.string().trim().max(100).required(),
+  street1: Joi.string().trim().max(200),
+  street2: Joi.string().trim().max(200),
+  zip: Joi.string().trim().max(20),
   countryCode: Joi.string().valid("NG"),
   stateCode: Joi.string(),
   cityId: Joi.number().integer(),
@@ -39,7 +39,9 @@ export const locationSchema = Joi.object({
       .required(),
   }),
   accuracyMeters: Joi.number().min(0).max(100000),
-})
+};
+
+export const locationSchema = Joi.object(locationFields)
   .with("lgaCode", "lga")
   .with("accuracyMeters", "point")
   .custom((value, helpers) => {

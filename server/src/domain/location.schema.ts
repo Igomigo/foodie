@@ -15,6 +15,9 @@ export interface Location {
   street1?: string;
   street2?: string;
   zip?: string;
+  formattedAddress?: string;
+  pointSource?: "device" | "search" | "pin";
+  confirmedAt?: Date;
 }
 
 export const locationSchema = new Schema<Location>(
@@ -42,6 +45,9 @@ export const locationSchema = new Schema<Location>(
     street1: { type: String, trim: true },
     street2: { type: String, trim: true },
     zip: { type: String, trim: true },
+    formattedAddress: { type: String, trim: true },
+    pointSource: { type: String, enum: ["device", "search", "pin"] },
+    confirmedAt: Date,
   },
   { _id: false },
 );

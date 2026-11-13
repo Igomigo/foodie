@@ -162,7 +162,7 @@ Set `GEOAPIFY_API_KEY` in the server's untracked `.env` for address lookups. The
 
 `location.types.ts` defines Foodie's address format. `geoapify.ts` contains the provider HTTP calls and response mapping. Replacing Geoapify should change this boundary rather than callers throughout the application. No additional packages or provider registry are needed.
 
-Suggestions include a display address, available address components, GeoJSON `[longitude, latitude]`, and a broad precision category (`building`, `street`, `place` or `area`). Missing components remain missing. A building result is not a verified delivery address. Provider county labels are not automatically treated as LGAs. Canonical catalogue matching and conversion into a saved customer location are separate work.
+Suggestions include a display address, available address components, GeoJSON `[longitude, latitude]`, and a broad precision category (`building`, `street`, `place` or `area`). Missing components remain missing. A building result is not a verified delivery address. Provider county labels are not automatically treated as LGAs. Saving is a separate explicit request that validates and canonicalizes the customer's reviewed fields.
 
 The matched point belongs to the provider's result and can differ from the submitted GPS position. Preserve the device's original point and reported accuracy separately when wiring the confirmation flow. An area-level result must not silently replace a customer's device point or be treated as a house-level match. Every result needs customer review before saving.
 
@@ -187,6 +187,41 @@ The two endpoints share a limit of 30 requests per account per minute. Validated
 
 The installed [express-rate-limit](https://express-rate-limit.mintlify.app/reference/configuration) uses in-memory counters here. Counters reset when this process restarts and are not coordinated across replicas. Use a shared store before scaling to multiple server instances or relying on persistent account-wide budgets. No Redis dependency has been added to location lookups for this initial single-process setup.
 
-#### Existing saved location endpoint
+#### Saving the selected destination
 
-`PATCH /api/v1/users/me/location` accepts `{ location }` and derives the customer ID from the authenticated session. It validates and canonicalizes state/city and optional LGA codes against the shared catalogues. New client signups and location edits ask for an LGA; the server preserves compatibility with existing clients that only send city/state. Optional `area` is a neighbourhood/street label (100 characters). Optional `point` is GeoJSON `[longitude, latitude]`, with optional `accuracyMeters`. Coordinates are range-checked device input, not a verified address or delivery promise. Replacing a location without coordinates removes old coordinates. No existing records are migrated.
+`PATCH /api/v1/users/me/location` derives the customer ID from the authenticated session and returns the updated public profile. Both location input paths use this endpoint and the same `users.location` record. No provider call is made while saving.
+
+Existing `{ location }` requests still support manual country/state/city/LGA selection and optional coordinates. State and city must match the shared catalogue; an LGA, when supplied, must belong to that state. Without explicit confirmation, the server never creates confirmation metadata. `area` remains an optional neighbourhood label (100 characters). `street1` and `street2` are address lines (200 characters each); `zip` is an optional postcode (20 characters).
+
+The new reviewed-address path accepts `{ confirmed: true, location }`:
+
+```json
+{
+  "confirmed": true,
+  "location": {
+    "country": "Nigeria",
+    "state": "Edo",
+    "city": "Benin City",
+    "street1": "12 Test Street",
+    "street2": "Flat 2",
+    "area": "GRA",
+    "point": { "type": "Point", "coordinates": [5.62, 6.34] },
+    "pointSource": "device",
+    "accuracyMeters": 25
+  }
+}
+```
+
+Confirmation requires a street/address line, city/locality label, supported Nigerian state and valid coordinates. Country defaults are a UI concern; the API still validates Nigeria. A house number belongs in `street1` when available; unnumbered addresses can use a useful street/landmark description instead. A separate apartment or delivery-detail line can use `street2`. LGA and postcode are optional, so missing provider data does not force users through every administrative dropdown.
+
+Canonical state/city IDs are derived from the shared catalogue when confidently matched. Known provider labels such as “Edo State”, “Lagos State”, “FCT” and Edo's “Benin” alias are normalized. A locality absent from our city directory can be stored as reviewed text with a pin, but receives no invented `cityId`. Supplied codes must agree with matched labels; explicit LGAs must match the state, and missing LGAs remain missing.
+
+`pointSource` is required for confirmation: `device` for the original browser position, `search` for a selected search result or `pin` for a customer-positioned map pin. Device positions require numeric `accuracyMeters` from 0 to 5,000; search/pin positions must omit device accuracy. Preserve the original GPS point when using `device`, rather than substituting a nearby reverse-geocoding result. Pin source and device accuracy are customer-submitted information, not proof of location.
+
+The server generates `confirmedAt` and `formattedAddress` from the reviewed components. Clients cannot set these fields. `confirmedAt` records customer review, not provider verification, delivery eligibility or a successful delivery. Both automatic and manual address/pin selection must wait for the customer to confirm before submitting this path.
+
+Confirmed requests replace the destination, including optional fields: omitted apartment, postcode or neighbourhood details from the previous destination are removed. For compatibility, an older manual form that sends the identical point and area can omit detailed address fields without erasing them. Changing the point, region/area or supplied address details invalidates that preservation. A manual region-only replacement clears previous coordinates and address confirmation. This avoids mixing an old house address with a new city or pin.
+
+User profile and location-save responses use `Cache-Control: no-store`. Application logs for location saves omit URL query contents, recording only a fixed route label, method, status and timing. Existing records are not migrated. The client confirmation screen and coordinate-based kitchen discovery are separate next steps; the existing catalogue endpoints still require their documented city filters.
+
+Storage follows [MongoDB's GeoJSON coordinate order](https://www.mongodb.com/docs/manual/reference/geojson/): longitude first, then latitude. The selected address remains an embedded user location rather than a separate address-book feature.

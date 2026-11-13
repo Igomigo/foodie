@@ -10,6 +10,7 @@ export class UserController {
     const user = await updateUserLocation(
       res.locals.user.userId,
       req.body.location,
+      req.body.confirmed === true,
     );
     return response(res, 200, {
       success: true,

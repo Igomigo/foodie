@@ -24,24 +24,36 @@ export function findLocalGovernment(stateCode: string, name: string) {
     ?.lgas.find((lga) => lga.name.toLowerCase() === name.trim().toLowerCase());
 }
 
+export function findNigerianState(name: string) {
+  const label = name.trim().toLowerCase().replace(/^ng-/, "");
+  const withoutState = label.replace(/\s+state$/, "");
+  return nigeria.states.find((state) =>
+    [
+      state.name.toLowerCase(),
+      state.code.toLowerCase(),
+      ...(state.code === "FC"
+        ? ["abuja", "fct", "abuja federal capital territory"]
+        : []),
+    ].includes(withoutState),
+  );
+}
+
+export function findNigerianCity(stateCode: string, name: string) {
+  let label = name.trim().toLowerCase();
+  if (stateCode === "ED" && label === "benin") label = "benin city";
+  return nigeria.states
+    .find((state) => state.code === stateCode)
+    ?.cities.find((city) => city.name.toLowerCase() === label);
+}
+
 export function findNigerianLocation(
   country: string,
   stateName: string,
   cityName: string,
 ) {
   if (!["nigeria", "ng"].includes(country.trim().toLowerCase())) return null;
-  const state = nigeria.states.find((item) =>
-    [
-      item.name.toLowerCase(),
-      item.code.toLowerCase(),
-      ...(item.code === "FC"
-        ? ["abuja", "fct", "abuja federal capital territory"]
-        : []),
-    ].includes(stateName.trim().toLowerCase()),
-  );
-  const city = state?.cities.find(
-    (item) => item.name.toLowerCase() === cityName.trim().toLowerCase(),
-  );
+  const state = findNigerianState(stateName);
+  const city = state ? findNigerianCity(state.code, cityName) : undefined;
   if (!state || !city) return null;
   return {
     country: "Nigeria",

@@ -18,7 +18,7 @@ export function createApp() {
   app.disable("x-powered-by");
   app.use(cors(createCorsOptions()));
   app.use(helmet());
-  app.use("/api/v1/locations", (_req, res, next) => {
+  app.use(["/api/v1/locations", "/api/v1/users"], (_req, res, next) => {
     res.set("Cache-Control", "no-store");
     next();
   });
@@ -28,13 +28,15 @@ export function createApp() {
     const locationLogger = morgan(
       ":method /api/v1/locations :status :response-time ms",
     );
+    const savedLocationLogger = morgan(
+      ":method /api/v1/users/me/location :status :response-time ms",
+    );
     app.use((req, res, next) => {
-      const isLocationRequest = /^\/api\/v1\/locations(?:\/|$)/i.test(req.path);
-      return (isLocationRequest ? locationLogger : requestLogger)(
-        req,
-        res,
-        next,
-      );
+      if (/^\/api\/v1\/locations(?:\/|$)/i.test(req.path))
+        return locationLogger(req, res, next);
+      if (/^\/api\/v1\/users\/me\/location(?:\/|$)/i.test(req.path))
+        return savedLocationLogger(req, res, next);
+      return requestLogger(req, res, next);
     });
   }
   app.use(express.json({ limit: "100kb" }));
