@@ -1,7 +1,7 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
 import FormField, { formControlClassName } from "@/components/shared/FormField";
+import SelectField from "@/components/shared/SelectField";
 import { countries, nigeria, localGovernments } from "@/lib/locations";
 import type { LocationInput } from "@/lib/location-validation";
 
@@ -63,65 +63,52 @@ export default function LocationPicker({
   return (
     <div className="space-y-4">
       {selects.map((field) => (
-        <FormField
+        <SelectField
           key={field.name}
           id={field.name}
           label={field.label}
           hint={field.hint}
           error={errors[field.name]}
+          name={field.name}
+          value={value[field.name]}
+          required
+          disabled={field.disabled}
+          onBlur={() => onBlur?.(field.name)}
+          onChange={(event) => {
+            const next = { ...value, [field.name]: event.target.value };
+            if (field.name === "state") {
+              next.city = "";
+              next.lga = "";
+              next.area = "";
+            }
+            if (
+              (field.name === "city" || field.name === "lga") &&
+              value[field.name]
+            )
+              next.area = "";
+            onChange(next);
+          }}
         >
-          <div className="relative">
-            <select
-              id={field.name}
-              name={field.name}
-              value={value[field.name]}
-              required
-              disabled={field.disabled}
-              onBlur={() => onBlur?.(field.name)}
-              onChange={(event) => {
-                const next = { ...value, [field.name]: event.target.value };
-                if (field.name === "state") {
-                  next.city = "";
-                  next.lga = "";
-                  next.area = "";
-                }
-                if (
-                  (field.name === "city" || field.name === "lga") &&
-                  value[field.name]
-                )
-                  next.area = "";
-                onChange(next);
-              }}
-              className={`${formControlClassName} appearance-none pr-11`}
-              aria-invalid={Boolean(errors[field.name])}
-              aria-describedby={`${field.name}-${errors[field.name] ? "error" : "hint"}`}
-            >
-              <option value="" disabled>
-                {field.placeholder}
-              </option>
-              {field.options.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-              {field.name === "country" && (
-                <optgroup label="More countries, later">
-                  {countries
-                    .filter((country) => country.code !== "NG")
-                    .map((country) => (
-                      <option key={country.code} disabled value={country.name}>
-                        {country.name}
-                      </option>
-                    ))}
-                </optgroup>
-              )}
-            </select>
-            <ChevronDown
-              aria-hidden="true"
-              className="pointer-events-none absolute top-4.5 right-4 size-4 text-foodie-muted"
-            />
-          </div>
-        </FormField>
+          <option value="" disabled>
+            {field.placeholder}
+          </option>
+          {field.options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+          {field.name === "country" && (
+            <optgroup label="More countries, later">
+              {countries
+                .filter((country) => country.code !== "NG")
+                .map((country) => (
+                  <option key={country.code} disabled value={country.name}>
+                    {country.name}
+                  </option>
+                ))}
+            </optgroup>
+          )}
+        </SelectField>
       ))}
       <FormField
         id="area"

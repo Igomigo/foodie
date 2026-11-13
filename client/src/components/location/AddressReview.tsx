@@ -8,7 +8,7 @@ import { addressDetailsSchema, type AddressDetails } from "@/lib/address";
 import { nigeria, localGovernments } from "@/lib/locations";
 import type { AddressDraft } from "@/types/location";
 import TextField from "@/components/shared/TextField";
-import FormField, { formControlClassName } from "@/components/shared/FormField";
+import SelectField from "@/components/shared/SelectField";
 import BrandButton from "@/components/shared/BrandButton";
 
 export default function AddressReview({
@@ -88,31 +88,25 @@ export default function AddressReview({
             })}
             error={errors.city?.message}
           />
-          <FormField
+          <SelectField
             id="address-state"
             label="State / FCT"
+            autoComplete="address-level1"
             error={errors.state?.message}
+            {...register("state", {
+              onChange: () => {
+                setValue("lga", "");
+                onRegionChange();
+              },
+            })}
           >
-            <select
-              id="address-state"
-              autoComplete="address-level1"
-              className={formControlClassName}
-              aria-invalid={!!errors.state}
-              {...register("state", {
-                onChange: () => {
-                  setValue("lga", "");
-                  onRegionChange();
-                },
-              })}
-            >
-              <option value="">Choose state</option>
-              {nigeria.states.map((item) => (
-                <option key={item.code} value={item.name}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-          </FormField>
+            <option value="">Choose state</option>
+            {nigeria.states.map((item) => (
+              <option key={item.code} value={item.name}>
+                {item.name}
+              </option>
+            ))}
+          </SelectField>
         </div>
         <button
           type="button"
@@ -149,24 +143,19 @@ export default function AddressReview({
             error={errors.area?.message}
           />
           <div className="grid grid-cols-1 gap-4 min-[400px]:grid-cols-2">
-            <FormField
+            <SelectField
               id="address-lga"
               label="Local government area"
               error={errors.lga?.message}
+              {...register("lga")}
             >
-              <select
-                id="address-lga"
-                className={formControlClassName}
-                {...register("lga")}
-              >
-                <option value="">Not added</option>
-                {localGovernments(state).map((lga) => (
-                  <option key={lga.id} value={lga.name}>
-                    {lga.name}
-                  </option>
-                ))}
-              </select>
-            </FormField>
+              <option value="">Not added</option>
+              {localGovernments(state).map((lga) => (
+                <option key={lga.id} value={lga.name}>
+                  {lga.name}
+                </option>
+              ))}
+            </SelectField>
             <TextField
               id="address-postcode"
               label="Postcode"
