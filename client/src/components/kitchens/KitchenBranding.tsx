@@ -56,7 +56,7 @@ export function KitchenBanner({ src, name }: { src?: string; name: string }) {
         >
           <div className="absolute -right-16 -bottom-36 size-96 rounded-full border border-foodie-sage/15" />
           <div className="absolute -right-4 -bottom-24 size-72 rounded-full border border-foodie-sage/15" />
-          <span className="absolute top-8 left-8 font-foodie-display text-3xl italic text-foodie-paper/70">
+          <span className="absolute right-8 bottom-12 left-8 text-center font-foodie-display text-3xl italic text-foodie-paper/70">
             Good food lives here.
           </span>
         </div>

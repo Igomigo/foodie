@@ -56,8 +56,8 @@ export default function KitchenHours({
 }) {
   const { today, label } = kitchenHoursSummary(hours);
   return (
-    <details className="group mx-auto mt-3 max-w-sm text-xs text-foodie-muted">
-      <summary className="mx-auto flex min-h-11 w-fit cursor-pointer list-none items-center gap-2 rounded-full px-3 focus-visible:outline-2 focus-visible:outline-foodie-action [&::-webkit-details-marker]:hidden">
+    <details className="group relative text-xs text-foodie-muted">
+      <summary className="flex min-h-11 w-fit cursor-pointer list-none items-center gap-2 rounded-full px-3 focus-visible:outline-2 focus-visible:outline-foodie-action [&::-webkit-details-marker]:hidden">
         <Clock3 size={14} aria-hidden="true" />
         {label}
         <ChevronDown
@@ -66,7 +66,7 @@ export default function KitchenHours({
           className="transition-transform group-open:rotate-180 motion-reduce:transition-none"
         />
       </summary>
-      <dl className="mt-2 space-y-2 rounded-2xl border border-foodie-line bg-white/70 p-4 text-left">
+      <dl className="mt-1 w-[min(300px,calc(100vw-48px))] space-y-2 rounded-2xl border border-foodie-line bg-foodie-paper p-4 text-left shadow-lg">
         {[1, 2, 3, 4, 5, 6, 0].map((day) => (
           <div
             key={day}

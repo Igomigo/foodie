@@ -85,7 +85,7 @@ export default function MealCollection({
         className={
           grid
             ? "grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-4"
-            : "flex snap-x snap-proximity gap-4 overflow-x-auto overscroll-x-contain pt-1 pb-4 [scrollbar-width:thin] sm:gap-5"
+            : "scrollbar-hide flex snap-x snap-proximity gap-4 overflow-x-auto overscroll-x-contain pt-1 pb-4 sm:gap-5"
         }
       >
         {items.map((item) => (

@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { isAxiosError } from "axios";
 import { useKitchenMenu, useDiscoveryMeal } from "@/hooks/useDiscovery";
+import FilterPill from "@/components/shared/FilterPill";
 import MealCard from "@/components/shared/MealCard";
 import type { MenuItem } from "@/types/discovery";
 import MealDetails from "./MealDetails";
@@ -120,29 +121,23 @@ export default function KitchenMenu({ id }: { id: string }) {
                   : "Closed right now. You can still browse the menu."}
               </p>
             )}
-            {kitchen.isDemo && (
-              <p className="mt-2 text-center text-[10px] text-foodie-muted">
-                Fictional kitchen · sample menu and prices
-              </p>
-            )}
           </div>
           <nav
             id="kitchen-menu"
             tabIndex={-1}
             aria-label="Kitchen menu sections"
-            className="sticky top-0 z-20 mt-6 flex gap-1 overflow-x-auto border-y border-foodie-line bg-foodie-paper/95 px-4 py-2 backdrop-blur-xl [scrollbar-width:thin] sm:px-0 md:top-[81px]"
+            className="scrollbar-hide sticky top-0 z-20 mx-4 mt-4 flex gap-2 overflow-x-auto rounded-[24px] bg-foodie-paper/95 p-2 backdrop-blur-xl sm:mx-0 md:top-[81px]"
           >
             {[{ id: "", name: "All", count: 0 }, ...(first.sections ?? [])].map(
               (entry) => (
-                <button
+                <FilterPill
                   key={entry.id}
                   type="button"
-                  aria-pressed={section === entry.id}
+                  active={section === entry.id}
                   onClick={() => selectSection(entry.id)}
-                  className={`min-h-11 shrink-0 rounded-full px-5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-foodie-action ${section === entry.id ? "bg-foodie-forest text-foodie-paper" : "text-foodie-muted hover:bg-foodie-sage/25"}`}
                 >
                   {entry.name}
-                </button>
+                </FilterPill>
               ),
             )}
           </nav>

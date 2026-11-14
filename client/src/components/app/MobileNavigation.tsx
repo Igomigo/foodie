@@ -1,39 +1,61 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Search } from "lucide-react";
 import { appNavigation } from "./AppHeader";
 import { cn } from "@/lib/utils";
 
 export default function MobileNavigation() {
   const pathname = usePathname();
+  const params = useSearchParams();
+  const searching = pathname === "/home" && params.get("view") === "search";
+  const searchParams = new URLSearchParams(
+    pathname === "/home" ? params.toString() : "",
+  );
+  searchParams.set("view", "search");
+  const items = [
+    ...appNavigation,
+    { href: `/home?${searchParams}`, label: "Search", icon: Search },
+  ];
+
+  function isActive(label: string, href: string) {
+    if (label === "Search") return searching;
+    if (href === "/home")
+      return (
+        !searching &&
+        (pathname === "/home" || pathname.startsWith("/kitchens/"))
+      );
+    return pathname === href;
+  }
   return (
     <nav
       aria-label="Mobile navigation"
-      className="fixed inset-x-0 bottom-0 z-30 flex justify-around border-t border-foodie-line bg-foodie-paper/98 px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] backdrop-blur-lg md:hidden"
+      className="fixed inset-x-3 bottom-[max(12px,env(safe-area-inset-bottom))] z-30 mx-auto grid max-w-md grid-cols-4 gap-1 rounded-[28px] border border-white/80 bg-foodie-paper/95 p-2 shadow-[0_8px_40px_#263c311a] backdrop-blur-xl md:hidden"
     >
-      {appNavigation.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          aria-current={
-            pathname === item.href ||
-            (item.href === "/home" && pathname.startsWith("/kitchens/"))
-              ? "page"
-              : undefined
-          }
-          className={cn(
-            "flex min-w-20 flex-col items-center gap-1.5 rounded-xl px-4 py-1 text-[9px]",
-            pathname === item.href ||
-              (item.href === "/home" && pathname.startsWith("/kitchens/"))
-              ? "font-semibold text-foodie-action"
-              : "text-foodie-muted",
-          )}
-        >
-          <item.icon size={21} strokeWidth={1.6} aria-hidden="true" />
-          {item.label}
-        </Link>
-      ))}
+      {items.map((item) => {
+        const active = isActive(item.label, item.href);
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            aria-current={active ? "page" : undefined}
+            className={cn(
+              "flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-[20px] px-1 py-2 text-[10px] transition-colors focus-visible:outline-2 focus-visible:outline-foodie-action",
+              active
+                ? "bg-foodie-action/8 font-semibold text-foodie-action"
+                : "text-foodie-muted hover:bg-foodie-ink/5",
+            )}
+          >
+            <item.icon
+              size={21}
+              strokeWidth={active ? 2 : 1.6}
+              aria-hidden="true"
+            />
+            {item.label}
+          </Link>
+        );
+      })}
     </nav>
   );
 }

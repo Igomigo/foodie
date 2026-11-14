@@ -1,12 +1,11 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useState, type ReactNode } from "react";
-import { Sparkles } from "lucide-react";
+import { Suspense, useState, type ReactNode } from "react";
 import { useProfile } from "@/hooks/useProfile";
 import AppHeader from "./AppHeader";
 import MobileNavigation from "./MobileNavigation";
-import { assistantName } from "@/data/assistant";
+import AssistantLauncher from "./AssistantLauncher";
 import AIChatModal from "@/components/AIChatModal";
 
 export default function AppShell({ children }: { children: ReactNode }) {
@@ -43,19 +42,10 @@ export default function AppShell({ children }: { children: ReactNode }) {
       >
         {children}
       </main>
-      <button
-        type="button"
-        onClick={() => setAssistantOpen(true)}
-        className="group fixed right-5 bottom-24 z-20 flex min-h-13 items-center gap-2.5 rounded-full border border-foodie-sage/20 bg-foodie-forest px-5 text-xs font-medium text-foodie-paper shadow-[0_8px_32px_#263c3130] transition-colors hover:bg-foodie-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-foodie-action md:right-8 md:bottom-7"
-      >
-        <Sparkles size={18} strokeWidth={1.5} aria-hidden="true" />
-        Ask {assistantName}
-        <span
-          className="size-1.5 rounded-full bg-foodie-sage"
-          aria-hidden="true"
-        />
-      </button>
-      <MobileNavigation />
+      <AssistantLauncher onOpen={() => setAssistantOpen(true)} />
+      <Suspense fallback={null}>
+        <MobileNavigation />
+      </Suspense>
       <AIChatModal open={assistantOpen} onOpenChange={setAssistantOpen} />
     </div>
   );

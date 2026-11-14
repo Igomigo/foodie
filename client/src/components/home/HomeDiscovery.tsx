@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, X } from "lucide-react";
+import DiscoverySearch from "./DiscoverySearch";
 import {
   useDiscovery,
   useFoodCategories,
@@ -22,20 +22,23 @@ export default function HomeDiscovery() {
     rawCategory === "small-chops" ? "bakery-snacks" : rawCategory;
   const view = params.get("view") || "";
   const openOnly = params.get("open") === "1";
-  const [debouncedQuery, setDebouncedQuery] = useState(q);
+  const [debouncedQuery, setDebouncedQuery] = useState(q.trim());
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(q.trim()), 350);
     return () => clearTimeout(timer);
   }, [q]);
   const categories = useFoodCategories();
   const discovery = useDiscovery({ q: debouncedQuery, category, openOnly });
-  const feed = useDiscoveryFeed(!q && !category && !view);
+  const browsing = !q.trim() && !category && !view && !openOnly;
+  const searchMode = view === "search";
+  const searchIdle = searchMode && !q.trim() && !category && !openOnly;
+  const waitingForQuery = debouncedQuery !== q.trim();
+  const feed = useDiscoveryFeed(browsing);
   const mealResults = useDiscoveryMeals(
     { q: debouncedQuery, category, openOnly },
-    !!q || !!category || view === "meals",
+    !!q.trim() || !!category || openOnly || view === "meals",
   );
   const returnTo = `/home${params.size ? `?${params}` : ""}`;
-  const browsing = !q && !category && !view;
   function updateFilters(changes: {
     q?: string;
     category?: string;
@@ -76,39 +79,29 @@ export default function HomeDiscovery() {
   return (
     <>
       <h1 className="sr-only">Discover food and kitchens near you</h1>
-      <div className="relative mx-auto max-w-2xl">
-        <label htmlFor="food-search" className="sr-only">
-          Search meals or kitchens
-        </label>
-        <Search
-          size={19}
-          aria-hidden="true"
-          className="absolute top-4 left-4 text-foodie-muted"
-        />
-        <input
-          id="food-search"
-          type="search"
-          maxLength={80}
-          value={q}
-          onChange={(event) =>
-            updateFilters({ q: event.target.value, view: "" })
-          }
-          placeholder="Search meals or kitchens"
-          className="h-12 w-full rounded-full border border-foodie-line bg-white/80 pr-12 pl-12 text-base outline-none focus:border-foodie-action focus:ring-3 focus:ring-foodie-action/10 sm:text-sm [&::-webkit-search-cancel-button]:appearance-none"
-        />
-        {q && (
-          <button
-            type="button"
-            onClick={() => updateFilters({ q: "" })}
-            aria-label="Clear search"
-            className="absolute top-0 right-1 grid size-12 place-items-center text-foodie-muted"
-          >
-            <X size={17} aria-hidden="true" />
-          </button>
+      <div className={searchMode ? "" : "hidden md:block"}>
+        {searchMode && (
+          <h2 className="mb-5 text-3xl font-medium tracking-tight md:hidden">
+            What are you craving?
+          </h2>
         )}
+        <DiscoverySearch
+          value={q}
+          onChange={(value) =>
+            updateFilters({ q: value, view: searchMode ? "search" : "" })
+          }
+        />
       </div>
+      {q && !searchMode && (
+        <button
+          onClick={() => updateFilters({ view: "search" })}
+          className="mb-3 min-h-11 text-left text-xs text-foodie-action md:hidden"
+        >
+          Results for “{q}” · Edit search
+        </button>
+      )}
       {!view && <HomeHero onExplore={explore} />}
-      {view && (
+      {view && !searchMode && (
         <button
           onClick={() => updateFilters({ view: "" })}
           className="mt-4 min-h-11 text-xs text-foodie-action underline"
@@ -122,7 +115,12 @@ export default function HomeDiscovery() {
             selected={category}
             categories={feed.data?.categories || categories.data || []}
             allCategories={categories.data || []}
-            onSelect={(value) => updateFilters({ category: value, view: "" })}
+            onSelect={(value) =>
+              updateFilters({
+                category: value,
+                view: searchMode ? "search" : "",
+              })
+            }
           />
         </div>
         <label className="flex min-h-11 shrink-0 cursor-pointer items-center gap-2 text-xs text-foodie-muted border-l border-foodie-line pl-3 sm:pl-4">
@@ -148,7 +146,18 @@ export default function HomeDiscovery() {
           </button>
         </p>
       )}
-      {view !== "meals" && (
+      {searchIdle && (
+        <p className="mt-8 text-sm leading-relaxed text-foodie-muted">
+          Search a dish or kitchen, or choose a category above. We’ll look
+          around your selected address.
+        </p>
+      )}
+      {waitingForQuery && (
+        <p role="status" className="mt-8 text-sm text-foodie-muted">
+          Finding matches…
+        </p>
+      )}
+      {view !== "meals" && !searchIdle && !waitingForQuery && (
         <NearbyKitchens
           pages={discovery.data?.pages}
           loading={discovery.isPending}
@@ -201,7 +210,7 @@ export default function HomeDiscovery() {
           />
         </>
       )}
-      {!browsing && view !== "kitchens" && (
+      {!browsing && !searchIdle && !waitingForQuery && view !== "kitchens" && (
         <>
           {mealResults.isPending ? (
             <p role="status" className="mt-8 text-sm text-foodie-muted">

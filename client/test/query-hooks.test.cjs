@@ -10,6 +10,7 @@ const dom = new JSDOM("<!doctype html><html><body></body></html>", {
   url: "http://localhost:3000",
 });
 global.window = dom.window;
+global.self = dom.window;
 global.document = dom.window.document;
 // Radix dialogs use these browser APIs for presence, focus and dismissal.
 for (const name of [
@@ -1262,4 +1263,211 @@ test("choosing a discovery category closes the picker and restores focus", async
     document.activeElement,
     view.getByRole("button", { name: "More" }),
   );
+});
+
+test("the assistant separates taps from drags and stays reachable after resizing", () => {
+  const Launcher =
+    require("../src/components/app/AssistantLauncher.tsx").default;
+  const previousObserver = global.ResizeObserver;
+  let onResize;
+  global.ResizeObserver = class {
+    constructor(callback) {
+      onResize = callback;
+    }
+    observe() {}
+    disconnect() {}
+  };
+  try {
+    let opened = 0;
+    const view = renderComponent(
+      React.createElement(Launcher, { onOpen: () => opened++ }),
+    );
+    const button = view.getByRole("button", { name: "Ask Amaka" });
+    const bounds = button.parentElement;
+    let width = 500;
+    let height = 400;
+    Object.defineProperties(bounds, {
+      clientWidth: { get: () => width },
+      clientHeight: { get: () => height },
+    });
+    Object.defineProperties(button, {
+      offsetWidth: { value: 150 },
+      offsetHeight: { value: 52 },
+    });
+    bounds.getBoundingClientRect = () => ({ left: 10, top: 10 });
+    button.getBoundingClientRect = () => ({
+      left:
+        10 + (button.style.left ? parseFloat(button.style.left) : width - 150),
+      top: 10 + (button.style.top ? parseFloat(button.style.top) : height - 52),
+    });
+    let captured;
+    button.setPointerCapture = (id) => {
+      captured = id;
+    };
+    button.hasPointerCapture = (id) => captured === id;
+    button.releasePointerCapture = () => {
+      captured = undefined;
+    };
+    function pointer(kind, x, y) {
+      fireEvent(
+        button,
+        new dom.window.PointerEvent(kind, {
+          bubbles: true,
+          pointerId: 1,
+          isPrimary: true,
+          button: 0,
+          clientX: x,
+          clientY: y,
+          pointerType: "touch",
+        }),
+      );
+    }
+    pointer("pointerdown", 380, 370);
+    pointer("pointermove", 382, 371);
+    pointer("pointerup", 382, 371);
+    fireEvent.click(button, { detail: 1 });
+    assert.equal(opened, 1, "a small finger movement is still a tap");
+    pointer("pointerdown", 380, 370);
+    pointer("pointermove", -1000, -1000);
+    pointer("pointerup", -1000, -1000);
+    fireEvent.click(button, { detail: 1 });
+    assert.equal(opened, 1, "dragging must not open the chat");
+    assert.equal(button.style.left, "0px");
+    assert.equal(button.style.top, "0px");
+    pointer("pointerdown", 30, 30);
+    pointer("pointermove", 10000, 10000);
+    pointer("pointerup", 10000, 10000);
+    assert.equal(button.style.left, "350px");
+    assert.equal(button.style.top, "348px");
+    width = 200;
+    height = 200;
+    act(() => onResize());
+    assert.equal(button.style.left, "50px");
+    assert.equal(button.style.top, "148px");
+    fireEvent.keyDown(button, { key: "ArrowUp" });
+    assert.equal(button.style.top, "124px");
+    fireEvent.keyDown(button, { key: "Home" });
+    assert.equal(button.style.top, "");
+    fireEvent.click(button, { detail: 0 });
+    assert.equal(opened, 2, "keyboard activation works after a drag");
+    pointer("pointerdown", 100, 100);
+    pointer("pointercancel", 100, 100);
+    pointer("pointermove", 0, 0);
+    assert.equal(
+      button.style.left,
+      "",
+      "cancelled gestures stop moving the button",
+    );
+  } finally {
+    global.ResizeObserver = previousObserver;
+  }
+});
+
+test("mobile search keeps its query and category while showing the correct active tab", async () => {
+  const navigationPath = require.resolve("next/navigation");
+  const originalNavigation = require(navigationPath);
+  require.cache[navigationPath].exports = {
+    ...originalNavigation,
+    usePathname: () => window.location.pathname,
+    useSearchParams: () => new URLSearchParams(window.location.search),
+  };
+  window.history.replaceState(null, "", "/home?view=search");
+  try {
+    const Home = require("../src/components/home/HomeDiscovery.tsx").default;
+    const Navigation =
+      require("../src/components/app/MobileNavigation.tsx").default;
+    handleRequest = async (config) => {
+      requests.push(config);
+      if (config.url === "/users/customer-one")
+        return response(config, { data: saved });
+      if (config.url === "/food-categories")
+        return response(config, { data: [{ id: "rice", name: "Rice" }] });
+      if (config.url.startsWith("/discovery/"))
+        return response(config, {
+          data: {
+            mode: "nearby",
+            items: [],
+            page: 1,
+            limit: 12,
+            hasMore: false,
+          },
+        });
+      throw new Error(`Unexpected request: ${config.url}`);
+    };
+    const content = () =>
+      React.createElement(
+        React.Fragment,
+        null,
+        React.createElement(Home),
+        React.createElement(Navigation),
+      );
+    const view = renderComponent(content(), { wrapper });
+    await waitFor(() => assert.ok(view.getByRole("button", { name: "Rice" })));
+    assert.match(
+      view.getByText(/Search a dish or kitchen/).textContent,
+      /selected address/,
+    );
+    assert.equal(
+      view.getByRole("link", { name: "Search" }).getAttribute("aria-current"),
+      "page",
+    );
+    assert.equal(
+      view.getByRole("link", { name: "Discover" }).getAttribute("aria-current"),
+      null,
+    );
+    fireEvent.change(view.getByRole("searchbox"), {
+      target: { value: "jollof" },
+    });
+    view.rerender(content());
+    assert.equal(
+      new URLSearchParams(window.location.search).get("view"),
+      "search",
+    );
+    assert.equal(view.getByRole("searchbox").value, "jollof");
+    await waitFor(() =>
+      assert.ok(
+        requests.some(
+          (r) => r.url === "/discovery/meals" && r.params.q === "jollof",
+        ),
+      ),
+    );
+    fireEvent.click(view.getByRole("button", { name: "Rice" }));
+    view.rerender(content());
+    assert.equal(
+      new URLSearchParams(window.location.search).get("category"),
+      "rice",
+    );
+    assert.equal(
+      new URLSearchParams(window.location.search).get("view"),
+      "search",
+    );
+    fireEvent.click(view.getByRole("button", { name: "Clear search" }));
+    view.rerender(content());
+    assert.equal(view.getByRole("searchbox").value, "");
+    assert.equal(
+      new URLSearchParams(window.location.search).get("category"),
+      "rice",
+    );
+    assert.equal(
+      new URLSearchParams(window.location.search).get("view"),
+      "search",
+    );
+    fireEvent.click(view.getByRole("checkbox", { name: "Open now" }));
+    view.rerender(content());
+    await waitFor(() =>
+      assert.ok(
+        requests.some(
+          (r) => r.url === "/discovery/meals" && r.params.openOnly === true,
+        ),
+      ),
+    );
+    assert.equal(
+      requests.some((r) => r.url === "/discovery/feed"),
+      false,
+      "search never displays the unfiltered daily feed",
+    );
+  } finally {
+    require.cache[navigationPath].exports = originalNavigation;
+    window.history.replaceState(null, "", "/");
+  }
 });
