@@ -97,4 +97,6 @@ References: [TanStack defaults](https://tanstack.com/query/latest/docs/framework
 
 Kitchen menu sections belong to each kitchen and are separate from Foodie's shared discovery categories. The section strip begins with **All**. Small chops are classified under **Bakery & snacks**. Discover has a short kitchen preview, local meal collections and full kitchen/meal browsing views. Meal links open the selected dish even if it is outside the first menu page.
 
-The kitchen cover and logo have independent fallbacks. Cover images and food photography reuse the existing documented assets. `public/images/kitchens/osas-logo.svg` is an original typographic monogram created for the fictional Osas Kitchen development fixture; it is not a real restaurant's logo. Other demo kitchens use their initials, and Night Bowl intentionally omits a banner to exercise the fallback.
+Kitchen cards and storefronts use the business's own `bannerUrl` and `logoUrl`. They share the same branding components, with stable colour variations and initials for missing assets. Meal photography is separate from kitchen branding. The local seed supplies 15 kitchen identities; image prompts and provenance are recorded in [docs/catalogue-assets.md](docs/catalogue-assets.md).
+
+Discover shows the full shared category catalogue in a scrollable pill strip. Desktop search expands from the filter row; mobile search remains in the bottom navigation. Loading states mirror kitchen cards, dish rails and menu layouts. Existing data stays visible during background refreshes.

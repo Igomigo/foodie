@@ -11,7 +11,8 @@ import {
 import type { DiscoverFeature } from "@/data/discover-features";
 import MealCollection from "./MealCollection";
 import HomeHero from "./HomeHero";
-import CravingCategories from "./CravingCategories";
+import DiscoveryToolbar from "./DiscoveryToolbar";
+import { MealCollectionSkeleton } from "./DiscoverySkeletons";
 import NearbyKitchens from "./NearbyKitchens";
 
 export default function HomeDiscovery() {
@@ -79,19 +80,19 @@ export default function HomeDiscovery() {
   return (
     <>
       <h1 className="sr-only">Discover food and kitchens near you</h1>
-      <div className={searchMode ? "" : "hidden md:block"}>
-        {searchMode && (
+      {searchMode && (
+        <div className="md:hidden">
           <h2 className="mb-5 text-3xl font-medium tracking-tight md:hidden">
             What are you craving?
           </h2>
-        )}
-        <DiscoverySearch
-          value={q}
-          onChange={(value) =>
-            updateFilters({ q: value, view: searchMode ? "search" : "" })
-          }
-        />
-      </div>
+          <DiscoverySearch
+            value={q}
+            onChange={(value) =>
+              updateFilters({ q: value, view: searchMode ? "search" : "" })
+            }
+          />
+        </div>
+      )}
       {q && !searchMode && (
         <button
           onClick={() => updateFilters({ view: "search" })}
@@ -109,32 +110,21 @@ export default function HomeDiscovery() {
           Back to Discover
         </button>
       )}
-      <div className="mt-4 flex items-center gap-3 sm:mt-5">
-        <div className="min-w-0 flex-1">
-          <CravingCategories
-            selected={category}
-            categories={feed.data?.categories || categories.data || []}
-            allCategories={categories.data || []}
-            onSelect={(value) =>
-              updateFilters({
-                category: value,
-                view: searchMode ? "search" : "",
-              })
-            }
-          />
-        </div>
-        <label className="flex min-h-11 shrink-0 cursor-pointer items-center gap-2 text-xs text-foodie-muted border-l border-foodie-line pl-3 sm:pl-4">
-          <input
-            type="checkbox"
-            checked={openOnly}
-            onChange={(event) =>
-              updateFilters({ open: event.target.checked ? "1" : "" })
-            }
-            className="size-4 accent-foodie-action"
-          />
-          Open now
-        </label>
-      </div>
+      <DiscoveryToolbar
+        categories={categories.data || []}
+        loading={categories.isPending}
+        category={category}
+        onCategory={(value) =>
+          updateFilters({ category: value, view: searchMode ? "search" : "" })
+        }
+        openOnly={openOnly}
+        onOpenOnly={(value) => updateFilters({ open: value ? "1" : "" })}
+        query={q}
+        onQuery={(value) =>
+          updateFilters({ q: value, view: searchMode ? "search" : "" })
+        }
+        searchMode={searchMode}
+      />
       {categories.isError && (
         <p className="mt-2 text-xs text-foodie-muted">
           Categories couldn’t load.{" "}
@@ -178,9 +168,10 @@ export default function HomeDiscovery() {
         />
       )}
       {browsing && feed.isPending && (
-        <p role="status" className="mt-8 text-xs text-foodie-muted">
-          Finding dishes around you…
-        </p>
+        <>
+          <MealCollectionSkeleton />
+          <MealCollectionSkeleton title="Something to try" />
+        </>
       )}
       {browsing && feed.isError && (
         <p role="alert" className="mt-8 text-xs text-foodie-muted">
@@ -213,9 +204,10 @@ export default function HomeDiscovery() {
       {!browsing && !searchIdle && !waitingForQuery && view !== "kitchens" && (
         <>
           {mealResults.isPending ? (
-            <p role="status" className="mt-8 text-sm text-foodie-muted">
-              Finding dishes…
-            </p>
+            <MealCollectionSkeleton
+              grid
+              title={view === "meals" ? "On the menu near you" : "Meals"}
+            />
           ) : mealResults.isError && !mealResults.data ? (
             <p role="alert" className="mt-8 text-sm text-foodie-muted">
               Dishes couldn’t load.{" "}

@@ -96,11 +96,6 @@ export default function MealCollection({
           >
             <div className="relative aspect-[1.45] overflow-hidden rounded-t-3xl bg-[#eeeadd]">
               <FoodImage src={item.imageUrl} alt={item.name} sizes="256px" />
-              {item.kitchen.isDemo && (
-                <span className="absolute top-3 left-3 rounded-full bg-foodie-paper/95 px-2 py-1 text-[9px]">
-                  Demo
-                </span>
-              )}
             </div>
             <div className="p-4">
               <h3 className="line-clamp-2 text-sm font-medium leading-snug">

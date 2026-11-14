@@ -126,7 +126,6 @@ export function findDiscoveryMeals(
         approvalStatus: 1,
         acceptingOrders: 1,
         openingHours: 1,
-        isDemo: 1,
         distanceMeters: 1,
       },
     },

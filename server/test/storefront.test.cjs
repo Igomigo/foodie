@@ -6,7 +6,7 @@ const { startTestDatabase } = require("./support/database.cjs");
 process.env.NODE_ENV = "test";
 process.env.JWT_SECRET_KEY = "isolated-storefront-test-secret";
 const { connectDatabase, disconnectDatabase } = require("../src/config/mongo");
-const { seedDemoCatalogue } = require("../src/scripts/seedDemoCatalogue");
+const { seedCatalogue } = require("../src/scripts/seedCatalogue");
 const { VendorModel } = require("../src/domain/vendor.model");
 const { MenuItemModel } = require("../src/domain/menu-item.model");
 const { UserModel } = require("../src/domain/user.model");
@@ -47,7 +47,7 @@ test(
     });
     process.env.MONGODB_URI = database.uri;
     await connectDatabase();
-    await seedDemoCatalogue(true);
+    await seedCatalogue(true);
     const vendors = await VendorModel.find().lean();
     const osas = vendors.find((v) => v.businessName === "Osas Kitchen");
     const rice = vendors.find((v) => v.businessName === "The Rice Room");
@@ -151,7 +151,11 @@ test(
     await t.test(
       "meal results and category counts use the entire eligible area, not loaded kitchen cards",
       async () => {
-        const meals = await discoverMeals(location, query);
+        const meals = await discoverMeals(
+          location,
+          query,
+          new Date("2026-11-14T11:00:00Z"),
+        );
         const kitchens = await discoverKitchens(location, query);
         assert.ok(meals.items.length > 6);
         const ids = new Set(kitchens.items.map((k) => k.vendorId));
@@ -162,7 +166,7 @@ test(
         );
         assert.equal(
           meals.items.some(
-            (item) => item.kitchen.businessName === "Pending Kitchen",
+            (item) => item.kitchen.businessName === "Palmcourt Kitchen",
           ),
           false,
         );
@@ -184,7 +188,10 @@ test(
           (await discoverMeals(location, { ...query, q: "[" })).items.length,
           0,
         );
-        const feed = await discoveryFeed(location);
+        const feed = await discoveryFeed(
+          location,
+          new Date("2026-11-14T11:00:00Z"),
+        );
         assert.ok(feed.meals.length >= 6);
         assert.equal(
           new Set(feed.meals.map((item) => item.menuItemId)).size,
@@ -235,7 +242,10 @@ test(
         });
         assert.equal(results.items[0].isAvailable, false);
         assert.equal(results.items[0].canOrder, false);
-        const feed = await discoveryFeed(location);
+        const feed = await discoveryFeed(
+          location,
+          new Date("2026-11-14T11:00:00Z"),
+        );
         assert.equal(
           feed.meals.some((meal) => meal.menuItemId === item.id),
           false,

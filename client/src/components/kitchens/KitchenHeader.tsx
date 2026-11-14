@@ -1,7 +1,10 @@
 "use client";
 import { ArrowLeft, MapPin } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { KitchenBanner, KitchenLogo } from "./KitchenBranding";
+import {
+  KitchenBanner,
+  KitchenLogo,
+} from "@/components/shared/KitchenBranding";
 import KitchenHours from "./KitchenHours";
 import { formatDistance, kitchenStatus } from "@/lib/food-format";
 import type { Kitchen } from "@/types/discovery";
@@ -21,7 +24,12 @@ export default function KitchenHeader({ kitchen }: { kitchen: Kitchen }) {
   return (
     <header>
       <div className="relative sm:overflow-hidden sm:rounded-[32px]">
-        <KitchenBanner src={kitchen.bannerUrl} name={kitchen.businessName} />
+        <KitchenBanner
+          src={kitchen.bannerUrl}
+          name={kitchen.businessName}
+          priority
+          className="h-48 sm:h-64 lg:h-72"
+        />
         <button
           type="button"
           onClick={goBack}
@@ -30,11 +38,6 @@ export default function KitchenHeader({ kitchen }: { kitchen: Kitchen }) {
         >
           <ArrowLeft size={21} aria-hidden="true" />
         </button>
-        {kitchen.isDemo && (
-          <span className="absolute top-[max(16px,env(safe-area-inset-top))] right-5 max-w-[65%] rounded-full bg-foodie-paper/95 px-3 py-2 text-[10px] text-foodie-muted sm:top-5 sm:right-6">
-            Demo kitchen · sample menu & prices
-          </span>
-        )}
       </div>
       <div className="relative z-10 mx-auto -mt-11 w-fit sm:-mt-13">
         <KitchenLogo src={kitchen.logoUrl} name={kitchen.businessName} />

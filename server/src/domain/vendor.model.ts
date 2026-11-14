@@ -15,7 +15,6 @@ export interface Vendor {
   menuSections: MenuSection[];
   acceptingOrders: boolean;
   deliveryRadiusMeters?: number;
-  isDemo: boolean;
   openingHours: OpeningHours[];
   address: Location;
   approvalStatus: "pending" | "approved" | "suspended";
@@ -54,7 +53,6 @@ const vendorSchema = new Schema<Vendor>(
       max: 30000,
       validate: Number.isSafeInteger,
     },
-    isDemo: { type: Boolean, default: false },
     openingHours: {
       type: [openingHoursSchema],
       required: true,

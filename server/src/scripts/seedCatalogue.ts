@@ -10,23 +10,24 @@ import {
   findNigerianCity,
   findNigerianState,
 } from "../location/location.catalogue";
-import { demoKitchens, demoMeals } from "./demoCatalogue.data";
+import { seedKitchens, seedMeals } from "./catalogue.data";
 
 export function assertLocalSeed(
   uri: string,
   environment = process.env.NODE_ENV,
 ) {
   if (environment === "production")
-    throw new Error("Demo seeding is disabled in production");
+    throw new Error("Catalogue seeding is disabled in production");
   // Only an explicit, single local MongoDB host is allowed, including credentials.
   const host = uri.match(
     /^mongodb:\/\/(?:[^/@]+@)?(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?\//i,
   );
   if (!host)
-    throw new Error("Demo seeding requires a local MongoDB connection");
+    throw new Error("Catalogue seeding requires a local MongoDB connection");
 }
 
-function demoId(key: string) {
+// Keep the original namespace so repeat runs update existing seeded records.
+function catalogueId(key: string) {
   return new Types.ObjectId(
     createHash("sha256")
       .update(`foodie-demo:${key}`)
@@ -35,15 +36,15 @@ function demoId(key: string) {
   );
 }
 
-export async function seedDemoCatalogue(apply = false) {
+export async function seedCatalogue(apply = false) {
   assertLocalSeed(process.env.MONGODB_URI || "");
   const passwordHash = await bcrypt.hash(randomBytes(32).toString("hex"), 10);
-  const records = demoKitchens.map((kitchen) => {
+  const records = seedKitchens.map((kitchen) => {
     const state = findNigerianState(kitchen.state);
     const city = state && findNigerianCity(state.code, kitchen.city);
-    if (!state || !city) throw new Error(`Unknown demo city: ${kitchen.city}`);
+    if (!state || !city) throw new Error(`Unknown seed city: ${kitchen.city}`);
     const owner = new UserModel({
-      _id: demoId(`owner:${kitchen.slug}`),
+      _id: catalogueId(`owner:${kitchen.slug}`),
       email: `${kitchen.slug}@foodie-demo.example.com`,
       passwordHash,
       roles: ["user", "vendor"],
@@ -54,38 +55,36 @@ export async function seedDemoCatalogue(apply = false) {
       "soups-swallows": "Soups & swallows",
       grills: "Protein",
       "bakery-snacks": "Bakery & snacks",
+      "pasta-noodles": "Pasta & noodles",
+      "beans-yam": "Beans & yam",
+      breakfast: "Breakfast",
+      desserts: "Desserts",
+      drinks: "Drinks",
     };
     const sectionCategories = [
-      ...new Set(kitchen.meals.map((key) => demoMeals[key].category)),
+      ...new Set(kitchen.meals.map((key) => seedMeals[key].category)),
     ];
     const menuSections = sectionCategories.map((category, position) => ({
-      _id: demoId(`section:${kitchen.slug}:${category}`),
+      _id: catalogueId(`section:${kitchen.slug}:${category}`),
       name: sectionNames[category],
       position,
     }));
     const vendor = new VendorModel({
-      _id: demoId(`vendor:${kitchen.slug}`),
+      _id: catalogueId(`vendor:${kitchen.slug}`),
       ownerId: owner._id,
       businessName: kitchen.name,
       description: kitchen.description,
-      imageUrl: demoMeals[kitchen.meals[0]].imageUrl,
-      bannerUrl: kitchen.closed
-        ? undefined
-        : demoMeals[kitchen.meals[0]].imageUrl,
-      logoUrl:
-        kitchen.slug === "osas" ? "/images/kitchens/osas-logo.svg" : undefined,
+      bannerUrl: `/images/kitchens/${kitchen.slug}-cover.webp`,
+      logoUrl: `/images/kitchens/${kitchen.slug}-logo.svg`,
       menuSections,
-      isDemo: true,
-      approvalStatus: kitchen.pending ? "pending" : "approved",
-      acceptingOrders: true,
+      approvalStatus: kitchen.approvalStatus ?? "approved",
+      acceptingOrders: kitchen.acceptingOrders ?? true,
       deliveryRadiusMeters: kitchen.radius,
-      openingHours: kitchen.closed
-        ? []
-        : Array.from({ length: 7 }, (_, day) => ({
-            day,
-            opensAt: "00:00",
-            closesAt: "24:00",
-          })),
+      openingHours: Array.from({ length: 7 }, (_, day) => ({
+        day,
+        opensAt: kitchen.opensAt ?? "08:00",
+        closesAt: kitchen.closesAt ?? "22:00",
+      })),
       address: {
         country: "Nigeria",
         countryCode: "NG",
@@ -100,11 +99,11 @@ export async function seedDemoCatalogue(apply = false) {
     const items = kitchen.meals.map(
       (key) =>
         new MenuItemModel({
-          _id: demoId(`meal:${kitchen.slug}:${key}`),
+          _id: catalogueId(`meal:${kitchen.slug}:${key}`),
           vendorId: vendor._id,
-          ...demoMeals[key],
-          sectionId: demoId(
-            `section:${kitchen.slug}:${demoMeals[key].category}`,
+          ...seedMeals[key],
+          sectionId: catalogueId(
+            `section:${kitchen.slug}:${seedMeals[key].category}`,
           ),
           isPublished: true,
           isAvailable: !(kitchen.slug === "rice-room" && key === "chops"),
@@ -117,7 +116,7 @@ export async function seedDemoCatalogue(apply = false) {
                     maxSelections: 1,
                     choices: [
                       {
-                        _id: demoId(`choice:${kitchen.slug}:dodo`),
+                        _id: catalogueId(`choice:${kitchen.slug}:dodo`),
                         name: "Add dodo",
                         price: 80000,
                         isAvailable: true,
@@ -152,20 +151,19 @@ export async function seedDemoCatalogue(apply = false) {
             existingOwner.email !== owner.email ||
             !existingOwner.roles.includes("vendor"))
         )
-          throw new Error("Demo owner conflicts with an existing account");
+          throw new Error("Seed owner conflicts with an existing account");
         if (
           existingVendor &&
           (!existingVendor._id.equals(vendor._id) ||
-            !existingVendor.ownerId.equals(owner._id) ||
-            !existingVendor.isDemo)
+            !existingVendor.ownerId.equals(owner._id))
         )
-          throw new Error("Demo kitchen conflicts with an existing business");
+          throw new Error("Seed kitchen conflicts with an existing business");
         for (const item of items) {
           const existingItem = await MenuItemModel.findById(item._id).session(
             session,
           );
           if (existingItem && !existingItem.vendorId.equals(vendor._id))
-            throw new Error("Demo meal conflicts with an existing menu");
+            throw new Error("Seed meal conflicts with an existing menu");
         }
         if (!apply) continue;
         // Existing users are never updated, even on repeat runs.
@@ -196,18 +194,18 @@ export async function seedDemoCatalogue(apply = false) {
 async function main() {
   assertLocalSeed(process.env.MONGODB_URI || "");
   await connectDatabase();
-  const result = await seedDemoCatalogue(process.argv.includes("--apply"));
+  const result = await seedCatalogue(process.argv.includes("--apply"));
   console.log(
-    `${result.applied ? "Seeded" : "Dry run:"} ${result.kitchens} fictional kitchens and ${result.meals} meals. Existing customer accounts are untouched.`,
+    `${result.applied ? "Seeded" : "Dry run:"} ${result.kitchens} kitchens and ${result.meals} meals. Existing customer accounts are untouched.`,
   );
   if (!result.applied)
-    console.log("Run with --apply to write the sample catalogue.");
+    console.log("Run with --apply to write the development catalogue.");
 }
 if (require.main === module) {
   main()
     .catch(() => {
       console.error(
-        "Demo seeding failed. Check the local database and seed record conflicts.",
+        "Catalogue seeding failed. Check the local database and seed record conflicts.",
       );
       process.exitCode = 1;
     })

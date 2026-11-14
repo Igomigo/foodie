@@ -31,7 +31,7 @@ export default function MobileNavigation() {
   return (
     <nav
       aria-label="Mobile navigation"
-      className="fixed inset-x-3 bottom-[max(12px,env(safe-area-inset-bottom))] z-30 mx-auto grid max-w-md grid-cols-4 gap-1 rounded-[28px] border border-white/80 bg-foodie-paper/95 p-2 shadow-[0_8px_40px_#263c311a] backdrop-blur-xl md:hidden"
+      className="fixed inset-x-3 bottom-[max(12px,env(safe-area-inset-bottom))] z-30 mx-auto grid max-w-md grid-cols-4 gap-1 rounded-full border border-white/80 bg-foodie-paper/95 p-1.5 shadow-[0_8px_40px_#263c311a] backdrop-blur-xl md:hidden"
     >
       {items.map((item) => {
         const active = isActive(item.label, item.href);
@@ -41,14 +41,14 @@ export default function MobileNavigation() {
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-[20px] px-1 py-2 text-[10px] transition-colors focus-visible:outline-2 focus-visible:outline-foodie-action",
+              "flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-full px-1 py-1.5 text-[10px] transition-colors focus-visible:outline-2 focus-visible:outline-foodie-action",
               active
                 ? "bg-foodie-action/8 font-semibold text-foodie-action"
                 : "text-foodie-muted hover:bg-foodie-ink/5",
             )}
           >
             <item.icon
-              size={21}
+              size={20}
               strokeWidth={active ? 2 : 1.6}
               aria-hidden="true"
             />

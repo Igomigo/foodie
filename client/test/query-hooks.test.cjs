@@ -11,6 +11,12 @@ const dom = new JSDOM("<!doctype html><html><body></body></html>", {
 });
 global.window = dom.window;
 global.self = dom.window;
+window.matchMedia = (media) => ({
+  media,
+  matches: false,
+  addEventListener() {},
+  removeEventListener() {},
+});
 global.document = dom.window.document;
 // Radix dialogs use these browser APIs for presence, focus and dismissal.
 for (const name of [
@@ -1211,7 +1217,7 @@ test("kitchen branding falls back cleanly when supplied images fail", () => {
   const {
     KitchenLogo,
     KitchenBanner,
-  } = require("../src/components/kitchens/KitchenBranding.tsx");
+  } = require("../src/components/shared/KitchenBranding.tsx");
   const logo = renderComponent(
     React.createElement(KitchenLogo, {
       src: "/missing-logo.png",
@@ -1227,42 +1233,28 @@ test("kitchen branding falls back cleanly when supplied images fail", () => {
       name: "Test Kitchen",
     }),
   );
-  fireEvent.error(banner.getByAltText("Test Kitchen cover photo"));
-  assert.ok(banner.getByText("Good food lives here."));
+  fireEvent.error(banner.getByAltText("Test Kitchen cover"));
+  assert.ok(banner.getByRole("img", { name: "Test Kitchen cover" }));
 });
 
-test("choosing a discovery category closes the picker and restores focus", async () => {
+test("all discovery categories stay directly selectable without a More dialog", () => {
   const Categories =
     require("../src/components/home/CravingCategories.tsx").default;
-  let chosen = "";
-  const list = [
-    { id: "rice", name: "Rice" },
-    { id: "bakery-snacks", name: "Bakery & snacks" },
-  ];
+  const list = require("../../shared/data/food-categories.json");
+  let selected;
   const view = renderComponent(
     React.createElement(Categories, {
-      selected: "rice",
+      selected: "",
       categories: list,
-      allCategories: list,
-      onSelect: (value) => {
-        chosen = value;
+      onSelect: (id) => {
+        selected = id;
       },
     }),
   );
-  fireEvent.click(view.getByRole("button", { name: "More" }));
-  await waitFor(() => assert.ok(view.getByRole("dialog")));
-  const { within } = require("@testing-library/react");
-  fireEvent.click(
-    within(view.getByRole("dialog")).getByRole("button", {
-      name: "Bakery & snacks",
-    }),
-  );
-  assert.equal(chosen, "bakery-snacks");
-  await waitFor(() => assert.equal(view.queryByRole("dialog"), null));
-  assert.equal(
-    document.activeElement,
-    view.getByRole("button", { name: "More" }),
-  );
+  assert.equal(view.getAllByRole("button").length, list.length + 1);
+  assert.equal(view.queryByRole("button", { name: "More" }), null);
+  fireEvent.click(view.getByRole("button", { name: "Drinks" }));
+  assert.equal(selected, "drinks");
 });
 
 test("the assistant separates taps from drags and stays reachable after resizing", () => {
@@ -1415,7 +1407,7 @@ test("mobile search keeps its query and category while showing the correct activ
       view.getByRole("link", { name: "Discover" }).getAttribute("aria-current"),
       null,
     );
-    fireEvent.change(view.getByRole("searchbox"), {
+    fireEvent.change(view.container.querySelector("#food-search"), {
       target: { value: "jollof" },
     });
     view.rerender(content());
@@ -1423,7 +1415,7 @@ test("mobile search keeps its query and category while showing the correct activ
       new URLSearchParams(window.location.search).get("view"),
       "search",
     );
-    assert.equal(view.getByRole("searchbox").value, "jollof");
+    assert.equal(view.container.querySelector("#food-search").value, "jollof");
     await waitFor(() =>
       assert.ok(
         requests.some(
@@ -1441,9 +1433,13 @@ test("mobile search keeps its query and category while showing the correct activ
       new URLSearchParams(window.location.search).get("view"),
       "search",
     );
-    fireEvent.click(view.getByRole("button", { name: "Clear search" }));
+    fireEvent.click(
+      view.container
+        .querySelector("#food-search")
+        .parentElement.querySelector("button"),
+    );
     view.rerender(content());
-    assert.equal(view.getByRole("searchbox").value, "");
+    assert.equal(view.container.querySelector("#food-search").value, "");
     assert.equal(
       new URLSearchParams(window.location.search).get("category"),
       "rice",
@@ -1470,4 +1466,93 @@ test("mobile search keeps its query and category while showing the correct activ
     require.cache[navigationPath].exports = originalNavigation;
     window.history.replaceState(null, "", "/");
   }
+});
+
+test("desktop search expands with focus, preserves its query when closed and clears explicitly", () => {
+  const Toolbar =
+    require("../src/components/home/DiscoveryToolbar.tsx").default;
+  const previousMedia = window.matchMedia;
+  window.matchMedia = (media) => ({ media, matches: true });
+  try {
+    let query = "";
+    const props = () => ({
+      categories: [],
+      loading: false,
+      category: "",
+      onCategory() {},
+      openOnly: false,
+      onOpenOnly() {},
+      query,
+      onQuery: (value) => {
+        query = value;
+      },
+      searchMode: false,
+    });
+    const view = renderComponent(React.createElement(Toolbar, props()));
+    const trigger = view.getByRole("button", { name: "Search", exact: true });
+    assert.equal(trigger.getAttribute("aria-expanded"), "false");
+    assert.equal(view.queryByRole("searchbox"), null);
+    fireEvent.click(trigger);
+    const input = view.getByRole("searchbox");
+    assert.equal(document.activeElement, input);
+    fireEvent.change(input, { target: { value: "banga" } });
+    view.rerender(React.createElement(Toolbar, props()));
+    fireEvent.keyDown(input, { key: "Escape" });
+    assert.equal(view.queryByRole("searchbox"), null);
+    assert.equal(query, "banga");
+    assert.equal(document.activeElement, trigger);
+    fireEvent.click(trigger);
+    assert.equal(view.getByRole("searchbox").value, "banga");
+    fireEvent.click(view.getByRole("button", { name: "Clear search" }));
+    assert.equal(query, "");
+  } finally {
+    window.matchMedia = previousMedia;
+  }
+});
+
+test("kitchen loading skeletons give way to data and never replace cached cards on refresh errors", () => {
+  const Nearby = require("../src/components/home/NearbyKitchens.tsx").default;
+  const props = {
+    loading: true,
+    failed: false,
+    fetching: true,
+    hasMore: false,
+    categories: [],
+    filtered: false,
+    returnTo: "/home",
+    preview: true,
+    onRetry() {},
+    onMore() {},
+    onClear() {},
+  };
+  const view = renderComponent(React.createElement(Nearby, props));
+  assert.ok(view.getByRole("status", { name: "Finding kitchens" }));
+  const pages = [
+    {
+      mode: "nearby",
+      page: 1,
+      limit: 12,
+      hasMore: false,
+      items: [
+        {
+          vendorId: "kitchen-one",
+          businessName: "Osas Kitchen",
+          address: { area: "GRA", city: "Benin City" },
+          distanceMeters: 1000,
+          categories: [],
+          isOpen: true,
+          isAcceptingOrders: true,
+        },
+      ],
+    },
+  ];
+  view.rerender(React.createElement(Nearby, { ...props, pages, failed: true }));
+  assert.equal(view.queryByRole("status", { name: "Finding kitchens" }), null);
+  assert.ok(view.getByRole("link", { name: /Osas Kitchen/ }));
+  assert.match(view.getByRole("alert").textContent, /Couldn’t refresh/);
+  view.rerender(
+    React.createElement(Nearby, { ...props, loading: false, failed: true }),
+  );
+  assert.match(view.getByRole("alert").textContent, /couldn’t load/i);
+  assert.equal(view.queryByRole("status", { name: "Finding kitchens" }), null);
 });

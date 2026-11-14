@@ -1,17 +1,22 @@
 "use client";
 
 import { Search, X } from "lucide-react";
+import type { Ref } from "react";
 
 export default function DiscoverySearch({
   value,
   onChange,
+  inputId = "food-search",
+  inputRef,
 }: {
   value: string;
   onChange: (value: string) => void;
+  inputId?: string;
+  inputRef?: Ref<HTMLInputElement>;
 }) {
   return (
     <div className="relative mx-auto max-w-2xl">
-      <label htmlFor="food-search" className="sr-only">
+      <label htmlFor={inputId} className="sr-only">
         Search meals or kitchens
       </label>
       <Search
@@ -20,7 +25,8 @@ export default function DiscoverySearch({
         className="absolute top-4 left-4 text-foodie-muted"
       />
       <input
-        id="food-search"
+        id={inputId}
+        ref={inputRef}
         type="search"
         enterKeyHint="search"
         maxLength={80}

@@ -1,6 +1,6 @@
 // Fictional development businesses. Coordinates are public neighbourhood centres,
 // not customer addresses or claims about real restaurants.
-export const demoMeals = {
+export const seedMeals = {
   jollof: {
     name: "Party jollof & chicken",
     description: "Smoky jollof rice with chicken and fried plantain.",
@@ -71,10 +71,60 @@ export const demoMeals = {
     imageUrl: "/images/foodie-suya.png",
     price: 350000,
   },
+  spaghetti: {
+    name: "Jollof spaghetti & chicken",
+    description: "Peppery tomato spaghetti with grilled chicken.",
+    category: "pasta-noodles",
+    imageUrl: "/images/meals/jollof-spaghetti.webp",
+    price: 380000,
+  },
+  beans: {
+    name: "Ewa agoyin & bread",
+    description: "Soft honey beans, slow-fried pepper sauce and agege bread.",
+    category: "beans-yam",
+    imageUrl: "/images/meals/ewa-agoyin.webp",
+    price: 250000,
+  },
+  akara: {
+    name: "Akara & pap",
+    description: "Fresh golden bean fritters with smooth, warm ogi.",
+    category: "breakfast",
+    imageUrl: "/images/meals/akara-pap.webp",
+    price: 220000,
+  },
+  yam: {
+    name: "Yam porridge",
+    description: "Soft yam in a rich pepper sauce with smoked fish.",
+    category: "beans-yam",
+    imageUrl: "/images/meals/yam-porridge.webp",
+    price: 300000,
+  },
+  sundae: {
+    name: "Vanilla & groundnut sundae",
+    description: "Vanilla ice cream, chocolate drizzle and roasted groundnuts.",
+    category: "desserts",
+    imageUrl: "/images/meals/vanilla-sundae.webp",
+    price: 280000,
+  },
+  zobo: {
+    name: "Chilled zobo",
+    description: "A refreshing hibiscus drink with a hint of pineapple.",
+    category: "drinks",
+    imageUrl: "/images/meals/zobo.webp",
+    price: 100000,
+  },
+  pie: {
+    name: "Beef meat pie",
+    description:
+      "Golden shortcrust pastry filled with beef, potato and carrot.",
+    category: "bakery-snacks",
+    imageUrl: "/images/meals/meat-pie.webp",
+    price: 180000,
+  },
 };
 
-export type DemoMeal = keyof typeof demoMeals;
-interface DemoKitchen {
+export type SeedMeal = keyof typeof seedMeals;
+interface SeedKitchen {
   slug: string;
   name: string;
   description: string;
@@ -83,11 +133,13 @@ interface DemoKitchen {
   area: string;
   coordinates: [number, number];
   radius: number;
-  meals: DemoMeal[];
-  closed?: boolean;
-  pending?: boolean;
+  meals: SeedMeal[];
+  opensAt?: string;
+  closesAt?: string;
+  acceptingOrders?: boolean;
+  approvalStatus?: "pending" | "approved";
 }
-export const demoKitchens: DemoKitchen[] = [
+export const seedKitchens: SeedKitchen[] = [
   {
     slug: "osas",
     name: "Osas Kitchen",
@@ -146,14 +198,15 @@ export const demoKitchens: DemoKitchen[] = [
   {
     slug: "night-bowl",
     name: "Night Bowl",
-    description: "An example of a kitchen that is currently closed.",
+    description: "Comfort food for your late-night cravings.",
     city: "Benin City",
     state: "Edo",
     area: "GRA",
     coordinates: [5.62, 6.32],
     radius: 8000,
     meals: ["ofada", "oha"],
-    closed: true,
+    opensAt: "18:00",
+    closesAt: "02:00",
   },
   {
     slug: "ikeja",
@@ -179,14 +232,88 @@ export const demoKitchens: DemoKitchen[] = [
   },
   {
     slug: "pending",
-    name: "Pending Kitchen",
-    description: "Visibility test: this kitchen must stay hidden.",
+    name: "Palmcourt Kitchen",
+    description: "Home-style favourites, made fresh every day.",
     city: "Benin City",
     state: "Edo",
     area: "GRA",
     coordinates: [5.62, 6.32],
     radius: 8000,
     meals: ["jollof"],
-    pending: true,
+    approvalStatus: "pending",
+  },
+  {
+    slug: "mama-efe",
+    name: "Mama Efe's Kitchen",
+    description: "The home-cooked favourites you grew up with.",
+    city: "Benin City",
+    state: "Edo",
+    area: "GRA",
+    coordinates: [5.612, 6.309],
+    radius: 6500,
+    meals: ["egusi", "banga", "yam", "beans", "zobo"],
+  },
+  {
+    slug: "ember-yard",
+    name: "Ember Yard",
+    description: "Good fire. Slow grilling. Plenty of flavour.",
+    city: "Benin City",
+    state: "Edo",
+    area: "Sapele Road",
+    coordinates: [5.637, 6.301],
+    radius: 7000,
+    opensAt: "12:00",
+    closesAt: "23:00",
+    meals: ["suya", "jollof", "chops", "zobo"],
+  },
+  {
+    slug: "sunday-table",
+    name: "Sunday Table",
+    description: "Easy mornings and a little something sweet.",
+    city: "Benin City",
+    state: "Edo",
+    area: "GRA",
+    coordinates: [5.608, 6.311],
+    radius: 6000,
+    opensAt: "07:00",
+    closesAt: "18:00",
+    meals: ["akara", "pie", "sundae", "zobo"],
+  },
+  {
+    slug: "butter-crumb",
+    name: "Butter & Crumb",
+    description: "Fresh bakes, small chops and your afternoon treat.",
+    city: "Benin City",
+    state: "Edo",
+    area: "Airport Road",
+    coordinates: [5.619, 6.307],
+    radius: 6000,
+    opensAt: "07:00",
+    closesAt: "20:00",
+    meals: ["pie", "chops", "sundae", "zobo"],
+  },
+  {
+    slug: "nook-noodles",
+    name: "Nook & Noodles",
+    description: "Your little corner for a very good bowl.",
+    city: "Benin City",
+    state: "Edo",
+    area: "Adesuwa Road",
+    coordinates: [5.616, 6.299],
+    radius: 7000,
+    opensAt: "10:00",
+    closesAt: "22:00",
+    meals: ["spaghetti", "jollof", "suya", "zobo"],
+  },
+  {
+    slug: "yam-house",
+    name: "The Yam House",
+    description: "Proper yam, good beans and familiar favourites.",
+    city: "Benin City",
+    state: "Edo",
+    area: "Ring Road",
+    coordinates: [5.625, 6.327],
+    radius: 6000,
+    meals: ["yam", "beans", "akara", "stew", "zobo"],
   },
 ];

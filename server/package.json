@@ -12,7 +12,7 @@
     "migrate:accounts": "ts-node src/scripts/migrateAccounts.ts",
     "format": "prettier --write . --ignore-unknown",
     "format:check": "prettier --check . --ignore-unknown",
-    "seed:catalogue": "ts-node src/scripts/seedDemoCatalogue.ts"
+    "seed:catalogue": "ts-node src/scripts/seedCatalogue.ts"
   },
   "keywords": [],
   "author": "",

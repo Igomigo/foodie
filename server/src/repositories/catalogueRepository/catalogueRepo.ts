@@ -51,9 +51,6 @@ function publicVendorStages(
     {
       $match: {
         approvalStatus: "approved",
-        ...(process.env.NODE_ENV === "production"
-          ? { isDemo: { $ne: true } }
-          : {}),
         ...filter,
       },
     },
@@ -78,7 +75,6 @@ function publicVendorStages(
         bannerUrl: 1,
         logoUrl: 1,
         menuSections: 1,
-        isDemo: 1,
         address: 1,
         approvalStatus: 1,
         acceptingOrders: 1,

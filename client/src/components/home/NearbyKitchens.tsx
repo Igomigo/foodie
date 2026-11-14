@@ -3,6 +3,7 @@ import Link from "next/link";
 import { MapPin, Store } from "lucide-react";
 import type { FoodCategory, KitchenResults } from "@/types/discovery";
 import KitchenCard from "./KitchenCard";
+import { KitchenCardSkeleton } from "./DiscoverySkeletons";
 
 export default function NearbyKitchens({
   pages,
@@ -50,11 +51,6 @@ export default function NearbyKitchens({
             ? `Kitchens in ${first.city}`
             : "Kitchens near you"}
         </h2>
-        <span className="text-[10px] text-foodie-muted">
-          {first?.mode === "nearby"
-            ? "Taking orders first · then nearest"
-            : "Made for your next craving"}
-        </span>
       </div>
       {first?.mode === "city" && (
         <p className="mb-4 flex items-center gap-2 rounded-2xl border border-foodie-line bg-white/50 p-4 text-xs leading-relaxed text-foodie-muted">
@@ -71,22 +67,18 @@ export default function NearbyKitchens({
           </span>
         </p>
       )}
-      {loading ? (
+      {loading && !pages ? (
         <div
           role="status"
           aria-label="Finding kitchens"
           className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
         >
-          {[0, 1, 2].map((key) => (
+          {[0, 1, 2, 3, 4, 5].map((key) => (
             <div
               key={key}
-              className="overflow-hidden rounded-3xl border border-foodie-line motion-safe:animate-pulse"
+              className={preview && key >= 3 ? "hidden sm:block" : ""}
             >
-              <div className="aspect-[2/1] bg-foodie-line/50" />
-              <div className="space-y-3 p-5">
-                <div className="h-4 w-2/3 rounded bg-foodie-line/60" />
-                <div className="h-3 w-1/2 rounded bg-foodie-line/40" />
-              </div>
+              <KitchenCardSkeleton />
             </div>
           ))}
         </div>
@@ -159,17 +151,6 @@ export default function NearbyKitchens({
               </div>
             ))}
           </div>
-          {first?.mode === "nearby" && (
-            <p className="mt-4 text-[10px] text-foodie-muted">
-              Distances are approximate, measured in a straight line.
-            </p>
-          )}
-          {kitchens.some((kitchen) => kitchen.isDemo) && (
-            <p className="mt-2 text-[10px] text-foodie-muted">
-              Demo kitchens are fictional businesses for testing. Their menus
-              and prices are samples.
-            </p>
-          )}
           {failed && (
             <p role="alert" className="mt-4 text-sm text-foodie-action">
               Couldn’t refresh these results.{" "}

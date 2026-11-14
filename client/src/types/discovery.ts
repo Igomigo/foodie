@@ -14,7 +14,6 @@ export interface Kitchen {
   openingHours: { day: number; opensAt: string; closesAt: string }[];
   isOpen: boolean;
   isAcceptingOrders: boolean;
-  isDemo: boolean;
   categories: string[];
   distanceMeters: number | null;
   canDeliver: boolean | null;

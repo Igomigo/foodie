@@ -4,9 +4,9 @@ const mongoose = require("mongoose");
 const { startTestDatabase } = require("./support/database.cjs");
 process.env.NODE_ENV = "test";
 const {
-  seedDemoCatalogue,
+  seedCatalogue,
   assertLocalSeed,
-} = require("../src/scripts/seedDemoCatalogue");
+} = require("../src/scripts/seedCatalogue");
 const { connectDatabase, disconnectDatabase } = require("../src/config/mongo");
 const { UserModel } = require("../src/domain/user.model");
 const { VendorModel } = require("../src/domain/vendor.model");
@@ -44,20 +44,20 @@ test(
     const before = await UserModel.findById(customer._id)
       .select("+passwordHash")
       .lean();
-    const plan = await seedDemoCatalogue();
+    const plan = await seedCatalogue();
     assert.equal(plan.applied, false);
-    assert.equal(plan.kitchens, 9);
-    assert.equal(plan.meals, 26);
+    assert.equal(plan.kitchens, 15);
+    assert.equal(plan.meals, 52);
     assert.equal(await UserModel.countDocuments(), 1);
     assert.equal(await VendorModel.countDocuments(), 0);
-    await seedDemoCatalogue(true);
+    await seedCatalogue(true);
     const users = await UserModel.find()
       .select("+passwordHash")
       .sort({ _id: 1 })
       .lean();
-    await seedDemoCatalogue(true);
-    assert.equal(await VendorModel.countDocuments(), 9);
-    assert.equal(await MenuItemModel.countDocuments(), 26);
+    await seedCatalogue(true);
+    assert.equal(await VendorModel.countDocuments(), 15);
+    assert.equal(await MenuItemModel.countDocuments(), 52);
     assert.deepEqual(
       await UserModel.find().select("+passwordHash").sort({ _id: 1 }).lean(),
       users,
@@ -77,9 +77,9 @@ test(
       openOnly: false,
     });
     assert.ok(result.items.length >= 4);
-    assert.ok(result.items.every((k) => k.isDemo));
+    assert.ok(result.items.every((k) => !("isDemo" in k)));
     assert.equal(
-      result.items.some((k) => k.businessName === "Pending Kitchen"),
+      result.items.some((k) => k.businessName === "Palmcourt Kitchen"),
       false,
     );
     assert.equal(
@@ -88,15 +88,14 @@ test(
     );
     process.env.NODE_ENV = "production";
     try {
-      assert.equal(
-        (
-          await discoverKitchens(location, {
-            page: 1,
-            limit: 30,
-            openOnly: false,
-          })
-        ).items.length,
-        0,
+      const productionResults = await discoverKitchens(location, {
+        page: 1,
+        limit: 30,
+        openOnly: false,
+      });
+      assert.deepEqual(
+        new Set(productionResults.items.map((item) => item.vendorId)),
+        new Set(result.items.map((item) => item.vendorId)),
       );
     } finally {
       process.env.NODE_ENV = "test";

@@ -9,6 +9,7 @@ import MealCard from "@/components/shared/MealCard";
 import type { MenuItem } from "@/types/discovery";
 import MealDetails from "./MealDetails";
 import KitchenHeader from "./KitchenHeader";
+import KitchenMenuSkeleton, { MenuItemSkeleton } from "./KitchenMenuSkeleton";
 
 export default function KitchenMenu({ id }: { id: string }) {
   const params = useSearchParams();
@@ -54,15 +55,7 @@ export default function KitchenMenu({ id }: { id: string }) {
   return (
     <>
       {menu.isPending ? (
-        <div
-          role="status"
-          aria-label="Loading kitchen menu"
-          className="space-y-6 motion-safe:animate-pulse"
-        >
-          <div className="h-48 bg-foodie-line/50 sm:h-64 sm:rounded-3xl" />
-          <div className="mx-auto size-20 rounded-full bg-foodie-line/50" />
-          <div className="mx-auto h-8 w-1/2 rounded bg-foodie-line/50" />
-        </div>
+        <KitchenMenuSkeleton />
       ) : !kitchen ? (
         <div
           role="alert"
@@ -154,9 +147,15 @@ export default function KitchenMenu({ id }: { id: string }) {
               </p>
             )}
             {menu.isPlaceholderData && (
-              <p role="status" className="mb-6 text-sm text-foodie-muted">
-                Loading this section…
-              </p>
+              <div
+                role="status"
+                aria-label="Loading this section"
+                className="mb-6 grid gap-4 md:grid-cols-2"
+              >
+                {[0, 1, 2, 3].map((index) => (
+                  <MenuItemSkeleton key={index} />
+                ))}
+              </div>
             )}
             {!menu.isPlaceholderData &&
               (first.sections ?? [])

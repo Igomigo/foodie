@@ -19,7 +19,6 @@ export function candidateStages(
 ): PipelineStage[] {
   const visible = {
     approvalStatus: "approved",
-    ...(process.env.NODE_ENV === "production" ? { isDemo: { $ne: true } } : {}),
     ...(vendorId ? { _id: new Types.ObjectId(vendorId) } : {}),
     "address.country": /^(ng|nigeria)$/i,
   };
@@ -156,7 +155,6 @@ export function findDiscoveryKitchens(
         approvalStatus: 1,
         acceptingOrders: 1,
         openingHours: 1,
-        isDemo: 1,
         distanceMeters: 1,
         categories: 1,
       },

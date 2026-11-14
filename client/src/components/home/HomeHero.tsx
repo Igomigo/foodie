@@ -28,7 +28,7 @@ export default function HomeHero({
   return (
     <section
       aria-label="Today's food inspiration"
-      className="relative isolate mt-5 overflow-hidden rounded-3xl bg-[#eaeedc] sm:mt-6"
+      className="relative isolate overflow-hidden rounded-3xl bg-[#eaeedc]"
     >
       <div className="relative z-10 w-[64%] py-4 pl-5 sm:w-[65%] sm:py-6 sm:pl-8">
         <p className="text-[9px] font-semibold tracking-[.14em] text-foodie-forest/65 uppercase">
