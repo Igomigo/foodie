@@ -35,10 +35,16 @@ export default function AppHeader() {
             <Link
               key={item.href}
               href={item.href}
-              aria-current={pathname === item.href ? "page" : undefined}
+              aria-current={
+                pathname === item.href ||
+                (item.href === "/home" && pathname.startsWith("/kitchens/"))
+                  ? "page"
+                  : undefined
+              }
               className={cn(
                 "rounded-full px-5 py-3 text-xs transition-colors hover:bg-foodie-ink/5",
-                pathname === item.href
+                pathname === item.href ||
+                  (item.href === "/home" && pathname.startsWith("/kitchens/"))
                   ? "bg-foodie-forest text-foodie-paper hover:bg-foodie-forest"
                   : "text-foodie-muted",
               )}

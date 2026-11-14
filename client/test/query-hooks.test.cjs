@@ -902,3 +902,190 @@ test("the controlled phone field reports validation errors and receives form foc
   fireEvent.click(view.getByRole("button", { name: "Continue" }));
   await waitFor(() => assert.equal(submitted.phoneNumber, "+2348012345678"));
 });
+
+const {
+  useDiscovery,
+  useKitchenMenu,
+  discoveryKey,
+} = require("../src/hooks/useDiscovery.ts");
+test("discovery consumers share requests and keep each destination in its own cache", async () => {
+  client.setQueryData(profileKey(saved.userId), saved);
+  handleRequest = async (config) => {
+    requests.push(config);
+    assert.equal(config.url, "/discovery/kitchens");
+    return response(config, {
+      data: {
+        mode: "city",
+        items: [{ vendorId: "old-city" }],
+        page: 1,
+        limit: 12,
+        hasMore: false,
+      },
+    });
+  };
+  const filters = { q: "", category: "", openOnly: false };
+  const first = render(() => useDiscovery(filters));
+  const second = render(() => useDiscovery(filters));
+  await waitFor(() => assert.equal(first.result.current.isSuccess, true));
+  assert.equal(requests.length, 1);
+  assert.equal(
+    second.result.current.data.pages[0].items[0].vendorId,
+    "old-city",
+  );
+  const pending = deferred();
+  handleRequest = (config) => {
+    requests.push(config);
+    return pending.promise;
+  };
+  act(() => client.setQueryData(profileKey(saved.userId), updated));
+  await waitFor(() => assert.equal(requests.length, 2));
+  assert.equal(
+    first.result.current.data,
+    undefined,
+    "old-address kitchens are not placeholder data",
+  );
+  assert.notDeepEqual(discoveryKey(saved), discoveryKey(updated));
+  await act(async () =>
+    pending.resolve(
+      response(requests[1], {
+        data: {
+          mode: "city",
+          items: [{ vendorId: "new-city" }],
+          page: 1,
+          limit: 12,
+          hasMore: false,
+        },
+      }),
+    ),
+  );
+  await waitFor(() =>
+    assert.equal(
+      second.result.current.data.pages[0].items[0].vendorId,
+      "new-city",
+    ),
+  );
+  assert.equal(
+    requests[1].params.cityId,
+    undefined,
+    "destination is resolved on the server",
+  );
+  assert.equal(requests[1].params.latitude, undefined);
+});
+
+test("discovery pagination preserves filters and menu client errors do not retry", async () => {
+  client.setQueryData(profileKey(saved.userId), saved);
+  handleRequest = async (config) => {
+    requests.push(config);
+    if (config.url.includes("/menu")) return rejectRequest(config, 404);
+    assert.equal(config.params.category, "rice");
+    assert.equal(config.params.q, "jollof");
+    assert.equal(config.params.openOnly, true);
+    return response(config, {
+      data: {
+        mode: "city",
+        items: [{ vendorId: `kitchen-${config.params.page}` }],
+        page: config.params.page,
+        limit: 12,
+        hasMore: config.params.page === 1,
+      },
+    });
+  };
+  const results = render(() =>
+    useDiscovery({ q: "jollof", category: "rice", openOnly: true }),
+  );
+  await waitFor(() => assert.equal(results.result.current.isSuccess, true));
+  assert.equal(results.result.current.data.pages.length, 1);
+  await act(async () => results.result.current.fetchNextPage());
+  await waitFor(() =>
+    assert.equal(results.result.current.data.pages.length, 2),
+  );
+  assert.equal(results.result.current.hasNextPage, false);
+  const menu = render(() => useKitchenMenu("missing"));
+  await waitFor(() => assert.equal(menu.result.current.isError, true));
+  assert.equal(
+    requests.filter((config) => config.url.includes("/menu")).length,
+    1,
+  );
+});
+
+test("saving an address cancels old discovery reads and replaces the destination cache", async () => {
+  client.setQueryData(profileKey(saved.userId), saved);
+  const oldRead = deferred();
+  let changed = false;
+  handleRequest = async (config) => {
+    requests.push(config);
+    if (config.method === "patch") {
+      changed = true;
+      return response(config, { data: updated });
+    }
+    if (config.url.startsWith("/users/"))
+      return response(config, { data: changed ? updated : saved });
+    if (!changed) return oldRead.promise;
+    return response(config, {
+      data: {
+        mode: "city",
+        items: [{ vendorId: "new-address-kitchen" }],
+        page: 1,
+        limit: 12,
+        hasMore: false,
+      },
+    });
+  };
+  const discovery = render(() =>
+    useDiscovery({ q: "", category: "", openOnly: false }),
+  );
+  const update = render(useUpdateLocation);
+  await waitFor(() => assert.equal(requests.length, 1));
+  const previousRequest = requests[0];
+  await act(async () => update.result.current.mutateAsync(updated.location));
+  await waitFor(() => assert.equal(discovery.result.current.isSuccess, true));
+  assert.equal(previousRequest.signal.aborted, true);
+  assert.equal(
+    client.getQueriesData({ queryKey: discoveryKey(saved) }).length,
+    0,
+  );
+  assert.equal(
+    discovery.result.current.data.pages[0].items[0].vendorId,
+    "new-address-kitchen",
+  );
+  await act(async () =>
+    oldRead.resolve(
+      response(previousRequest, {
+        data: {
+          mode: "city",
+          items: [{ vendorId: "old-address-kitchen" }],
+          page: 1,
+          limit: 12,
+          hasMore: false,
+        },
+      }),
+    ),
+  );
+  assert.equal(
+    discovery.result.current.data.pages[0].items[0].vendorId,
+    "new-address-kitchen",
+  );
+});
+
+test("menu prices include required paid choices and preserve kobo amounts", () => {
+  const {
+    minimumMealPrice,
+    formatPrice,
+  } = require("../src/lib/food-format.ts");
+  const item = {
+    price: 300050,
+    options: [
+      {
+        minSelections: 2,
+        choices: [
+          { price: 50000, isAvailable: true },
+          { price: 80000, isAvailable: true },
+          { price: 10000, isAvailable: false },
+        ],
+      },
+      { minSelections: 0, choices: [{ price: 100000, isAvailable: true }] },
+    ],
+  };
+  assert.equal(minimumMealPrice(item), 430050);
+  assert.match(formatPrice(430050), /4,300\.5/);
+});

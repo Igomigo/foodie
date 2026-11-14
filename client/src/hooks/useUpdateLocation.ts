@@ -17,9 +17,15 @@ export function useUpdateLocation({
     mutationFn: (location: SavedLocation) =>
       updateLocation(location, confirmed),
     // A previous profile fetch must not overwrite the newly saved location.
-    onMutate: () => client.cancelQueries({ queryKey }),
+    onMutate: async () => {
+      await Promise.all([
+        client.cancelQueries({ queryKey }),
+        client.cancelQueries({ queryKey: ["discovery"] }),
+      ]);
+    },
     onSuccess: async (profile) => {
       if (getUserId() !== userId) return;
+      client.removeQueries({ queryKey: ["discovery"] });
       saveProfile(profile);
       client.setQueryData(queryKey, profile);
       await client.invalidateQueries({ queryKey });

@@ -5,6 +5,7 @@ export interface DiscoverFeature {
   accent: string;
   foods: string;
   language: "en" | "pcm";
+  search: string;
   dish: Dish;
   imageFit?: "cover";
 }
@@ -18,6 +19,7 @@ export const discoverFeatures: DiscoverFeature[] = [
     foods:
       "Banga soup, catfish and yellow starch. Na proper enjoyment be this.",
     language: "pcm",
+    search: "banga",
     dish: getDish("banga-and-starch"),
     imageFit: "cover",
   },
@@ -27,6 +29,7 @@ export const discoverFeatures: DiscoverFeature[] = [
     foods:
       "Rich groundnut soup and firm yellow eba. Give your usual soup a change.",
     language: "en",
+    search: "groundnut",
     dish: getDish("groundnut-and-eba"),
   },
   {
@@ -34,6 +37,7 @@ export const discoverFeatures: DiscoverFeature[] = [
     accent: "Make we chop.",
     foods: "Smoky jollof, chicken and dodo. This plate go make sense.",
     language: "pcm",
+    search: "jollof",
     dish: getDish("party-jollof"),
   },
   {
@@ -42,6 +46,7 @@ export const discoverFeatures: DiscoverFeature[] = [
     foods:
       "Tender oha leaves, rich broth and soft akpu. There’s your next swallow.",
     language: "en",
+    search: "oha",
     dish: getDish("oha-and-akpu"),
   },
   {
@@ -49,6 +54,7 @@ export const discoverFeatures: DiscoverFeature[] = [
     accent: "Ayamase follow.",
     foods: "Ofada rice, green ayamase and dodo. Na better combination be this.",
     language: "pcm",
+    search: "ofada",
     dish: getDish("ofada"),
   },
   {
@@ -56,6 +62,7 @@ export const discoverFeatures: DiscoverFeature[] = [
     accent: "a swallow?",
     foods: "Rich egusi soup and yellow eba. Take your time with this one.",
     language: "en",
+    search: "egusi",
     dish: getDish("egusi-and-eba"),
   },
   {
@@ -63,6 +70,7 @@ export const discoverFeatures: DiscoverFeature[] = [
     accent: "Dodo follow am.",
     foods: "White rice, beef stew and dodo. You fit say no to this one?",
     language: "pcm",
+    search: "rice",
     dish: getDish("rice-and-stew"),
   },
   {
@@ -71,6 +79,7 @@ export const discoverFeatures: DiscoverFeature[] = [
     foods:
       "Golden puff-puff, samosas and spring rolls. Start with something light.",
     language: "en",
+    search: "small chops",
     dish: getDish("small-chops"),
   },
   {
@@ -79,6 +88,7 @@ export const discoverFeatures: DiscoverFeature[] = [
     foods:
       "Better afang soup with beef, smoked fish and solid eba. Make we chop.",
     language: "pcm",
+    search: "afang",
     dish: getDish("afang-and-eba"),
   },
   {
@@ -87,6 +97,7 @@ export const discoverFeatures: DiscoverFeature[] = [
     foods:
       "Rice, beans, rich stew and dodo. An everyday favourite for good reason.",
     language: "en",
+    search: "rice",
     dish: getDish("rice-and-beans"),
   },
 ];

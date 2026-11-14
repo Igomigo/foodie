@@ -16,10 +16,16 @@ export default function MobileNavigation() {
         <Link
           key={item.href}
           href={item.href}
-          aria-current={pathname === item.href ? "page" : undefined}
+          aria-current={
+            pathname === item.href ||
+            (item.href === "/home" && pathname.startsWith("/kitchens/"))
+              ? "page"
+              : undefined
+          }
           className={cn(
             "flex min-w-20 flex-col items-center gap-1.5 rounded-xl px-4 py-1 text-[9px]",
-            pathname === item.href
+            pathname === item.href ||
+              (item.href === "/home" && pathname.startsWith("/kitchens/"))
               ? "font-semibold text-foodie-action"
               : "text-foodie-muted",
           )}

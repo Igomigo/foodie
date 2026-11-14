@@ -14,17 +14,21 @@ function minutes(time: string) {
   return hour * 60 + minute;
 }
 
-export function vendorAvailability(
-  vendor: Pick<Vendor, "approvalStatus" | "acceptingOrders" | "openingHours">,
-  now = new Date(),
-) {
+export function nigerianClock(now: Date) {
   const parts = nigeriaTime.formatToParts(now);
   const day = weekdays.indexOf(
     parts.find((part) => part.type === "weekday")!.value,
   );
-  const currentMinute =
-    Number(parts.find((part) => part.type === "hour")!.value) * 60 +
-    Number(parts.find((part) => part.type === "minute")!.value);
+  const time = `${parts.find((part) => part.type === "hour")!.value}:${parts.find((part) => part.type === "minute")!.value}`;
+  return { day, time };
+}
+
+export function vendorAvailability(
+  vendor: Pick<Vendor, "approvalStatus" | "acceptingOrders" | "openingHours">,
+  now = new Date(),
+) {
+  const { day, time } = nigerianClock(now);
+  const currentMinute = minutes(time);
   const previousDay = (day + 6) % 7;
 
   const isOpen = (vendor.openingHours ?? []).some((hours) => {

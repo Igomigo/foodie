@@ -136,7 +136,7 @@ Catalogue writes, approvals and vendor dashboards are separate future work. No p
 
 ## Next features
 
-Connect the client to the catalogue, then add basket, checkout and order history. Vendor dashboards, menu editing and order acceptance follow incrementally.
+The client now connects Discover and kitchen menus to the catalogue. Next add basket, checkout and order history. Vendor dashboards, menu editing and order acceptance follow incrementally.
 
 Introduce `Order` with checkout: one vendor per order initially, integer monetary amounts with currency, and embedded snapshots of purchased item names, prices and delivery address. Compute totals on the server. Add vendor staff memberships when multiple operators are needed; ownership and a short roles list are enough for this version.
 
@@ -224,7 +224,7 @@ The server generates `confirmedAt` and `formattedAddress` from the reviewed comp
 
 Confirmed requests replace the destination, including optional fields: omitted apartment, postcode or neighbourhood details from the previous destination are removed. For compatibility, an older manual form that sends the identical point and area can omit detailed address fields without erasing them. Changing the point, region/area or supplied address details invalidates that preservation. A manual region-only replacement clears previous coordinates and address confirmation. This avoids mixing an old house address with a new city or pin.
 
-User profile and location-save responses use `Cache-Control: no-store`. Application logs for location saves omit URL query contents, recording only a fixed route label, method, status and timing. Existing records are not migrated. The client now provides the confirmation screen; coordinate-based kitchen discovery remains separate work, and the existing catalogue endpoints still require their documented city filters.
+User profile and location-save responses use `Cache-Control: no-store`. Application logs for location saves omit URL query contents, recording only a fixed route label, method, status and timing. Existing records are not migrated. The client now provides the confirmation screen; coordinate-based kitchen discovery uses the separate authenticated Discover endpoints below. Existing public catalogue endpoints still require their documented city filters.
 
 Storage follows [MongoDB's GeoJSON coordinate order](https://www.mongodb.com/docs/manual/reference/geojson/): longitude first, then latitude. The selected address remains an embedded user location rather than a separate address-book feature.
 
@@ -235,3 +235,35 @@ Storage follows [MongoDB's GeoJSON coordinate order](https://www.mongodb.com/doc
 The provider module caches up to 64 public map images for an hour and shares concurrent requests for the same tile. Uncached requests start at most once every 100 ms, with a bounded five-second queue wait. Geoapify documents a four-times rate allowance for tiles; this 10-tiles/second cap stays below the free plan's 20-tiles/second equivalent. Tile routes allow 600 requests per account per minute. The provider module allows 2,000 uncached attempts per 24-hour window (500 credits), alongside the separate 2,500-attempt geocoding allowance. Cache hits and requests sharing an existing in-flight fetch do not spend this tile allowance. Failed provider attempts count. These are process-local application limits, not the provider's exact remaining balance; use shared counters before scaling server replicas. See [Geoapify pricing and tile rate limits](https://www.geoapify.com/pricing/).
 
 The client loads tiles through its authenticated HTTP service and Leaflet's grid-layer API, with attribution visible. The public OpenStreetMap tile server is not used. See [Geoapify map tiles](https://apidocs.geoapify.com/docs/maps/map-tiles/) for the raster URL format and attribution requirements.
+
+## Destination-based Discover
+
+The signed-in client uses these endpoints. They read the current customer's saved location from the database; callers cannot supply another customer's ID or override coordinates through query parameters.
+
+- `GET /api/v1/discovery/kitchens`: `q`, `category`, `openOnly`, `page` and `limit` (default 12, maximum 30). Search matches kitchen names and published meal names/descriptions. Category and search apply before pagination.
+- `GET /api/v1/discovery/kitchens/:id/menu`: the same menu search/category/pagination contract as the public catalogue, with the customer's location eligibility checked first. Out-of-area, hidden or unapproved kitchens return `404`; a missing location returns `409`.
+
+With a confirmed destination point, MongoDB's `2dsphere` index and `$geoNear` find approved kitchens within their explicitly configured `deliveryRadiusMeters` (100–30,000 metres). No radius means no coordinate-based delivery listing. Active vendor ownership and a published menu are required. Kitchens taking orders come first, followed by increasing distance and a stable ID tie-breaker. Closed kitchens remain browseable; `openOnly=true` excludes them and kitchens with paused orders. Hours use Africa/Lagos, including overnight periods.
+
+This initial coverage rule is a circle around each kitchen. Distances are approximate straight-line measurements, rounded to 100 metres for display. They are not road distance, travel time, delivery fees or a checkout guarantee. Routing and final delivery validation belong with checkout.
+
+A city-only location returns `mode: "city"`, `distanceMeters: null` and `canDeliver: null`. The UI offers address confirmation without pretending that city membership proves delivery coverage. No saved location returns `mode: "location-required"` and an empty list. A confirmed point with no eligible kitchens returns an honest empty result; it never widens to an unrelated city.
+
+Responses use the normal API envelope and `Cache-Control: no-store`. Discovery request logs omit query strings. The client keeps private TanStack Query caches scoped to the user and destination, cancels old reads when saving an address, and clears private caches on session changes. Discover filters are preserved in the URL when opening a menu. Cart and checkout are not part of this browsing release.
+
+References: [MongoDB $geoNear](https://www.mongodb.com/docs/manual/reference/operator/aggregation/geonear/), [2dsphere indexes](https://www.mongodb.com/docs/manual/core/indexes/index-types/geospatial/2dsphere/) and [Next.js native history integration](https://nextjs.org/docs/app/getting-started/linking-and-navigating#native-history-api).
+
+### Local sample catalogue
+
+From `server/`:
+
+```sh
+npm run seed:catalogue
+npm run seed:catalogue -- --apply
+```
+
+The first command validates the plan without inserting or replacing records. The second adds nine fictional kitchens and 26 sample meals using the existing food assets. Most are in Benin City; Ikeja and Abuja fixtures help verify that unrelated cities are excluded. The fixtures include a closed kitchen, an unavailable meal and a pending kitchen that must stay hidden. Prices and business names are fictional.
+
+Seeding refuses production mode and non-local MongoDB hosts. It uses deterministic IDs and a transaction, checks ownership conflicts, updates only its own demo businesses/menus, and leaves existing user records unchanged. Repeat runs do not duplicate records. Demo owners have random, unlogged passwords; this script does not create sign-in credentials. Demo kitchens carry `isDemo: true`, are labelled in the UI, and are excluded from catalogue/discovery responses when the server runs in production.
+
+Edit `src/scripts/demoCatalogue.data.ts` to adjust sample menus, coordinates or delivery radii. The points are public neighbourhood centres for testing; they are not real businesses or customer addresses. To test different destinations, review and save the customer's address normally in Settings. The seed never changes a customer's location.

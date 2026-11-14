@@ -9,6 +9,7 @@ import { userRouter } from "./user/user.route";
 import { aiRouter } from "./ai/ai.route";
 import { catalogueRouter } from "./catalogue/catalogue.route";
 import { locationRouter } from "./location/location.route";
+import { discoveryRouter } from "./discovery/discovery.route";
 import { createCorsOptions } from "./utils/corsOptions";
 import { errorHandler } from "./middleware/errorHandler";
 import { response } from "./interfaces/apiResponse";
@@ -18,10 +19,13 @@ export function createApp() {
   app.disable("x-powered-by");
   app.use(cors(createCorsOptions()));
   app.use(helmet());
-  app.use(["/api/v1/locations", "/api/v1/users"], (_req, res, next) => {
-    res.set("Cache-Control", "no-store");
-    next();
-  });
+  app.use(
+    ["/api/v1/locations", "/api/v1/users", "/api/v1/discovery"],
+    (_req, res, next) => {
+      res.set("Cache-Control", "no-store");
+      next();
+    },
+  );
   if (process.env.NODE_ENV !== "test") {
     const requestLogger = morgan("dev");
     // Even rejected requests may contain private details in their query string.
@@ -31,7 +35,12 @@ export function createApp() {
     const savedLocationLogger = morgan(
       ":method /api/v1/users/me/location :status :response-time ms",
     );
+    const discoveryLogger = morgan(
+      ":method /api/v1/discovery :status :response-time ms",
+    );
     app.use((req, res, next) => {
+      if (/^\/api\/v1\/discovery(?:\/|$)/i.test(req.path))
+        return discoveryLogger(req, res, next);
       if (/^\/api\/v1\/locations(?:\/|$)/i.test(req.path))
         return locationLogger(req, res, next);
       if (/^\/api\/v1\/users\/me\/location(?:\/|$)/i.test(req.path))
@@ -49,6 +58,7 @@ export function createApp() {
   app.use("/api/v1/ai", aiRouter);
   app.use("/api/v1", catalogueRouter);
   app.use("/api/v1/locations", locationRouter);
+  app.use("/api/v1/discovery", discoveryRouter);
   app.use((_req, res) =>
     response(res, 404, { success: false, message: "Route not found" }),
   );

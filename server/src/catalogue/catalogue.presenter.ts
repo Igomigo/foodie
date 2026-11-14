@@ -15,6 +15,7 @@ export function publicVendor(vendor: Vendor, now = new Date()) {
     businessName: vendor.businessName,
     description: vendor.description,
     imageUrl: vendor.imageUrl,
+    isDemo: vendor.isDemo === true,
     address: {
       country: address.country,
       countryCode: address.countryCode ?? canonical?.countryCode,

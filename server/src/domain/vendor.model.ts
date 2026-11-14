@@ -10,6 +10,8 @@ export interface Vendor {
   description?: string;
   imageUrl?: string;
   acceptingOrders: boolean;
+  deliveryRadiusMeters?: number;
+  isDemo: boolean;
   openingHours: OpeningHours[];
   address: Location;
   approvalStatus: "pending" | "approved" | "suspended";
@@ -30,6 +32,13 @@ const vendorSchema = new Schema<Vendor>(
     description: { type: String, trim: true, maxlength: 1000 },
     imageUrl: { type: String, trim: true, maxlength: 2000 },
     acceptingOrders: { type: Boolean, required: true, default: false },
+    deliveryRadiusMeters: {
+      type: Number,
+      min: 100,
+      max: 30000,
+      validate: Number.isSafeInteger,
+    },
+    isDemo: { type: Boolean, default: false },
     openingHours: {
       type: [openingHoursSchema],
       required: true,
@@ -54,5 +63,6 @@ vendorSchema.index({
   "address.cityId": 1,
   _id: 1,
 });
+vendorSchema.index({ "address.point": "2dsphere" });
 
 export const VendorModel = model<Vendor>("Vendor", vendorSchema);

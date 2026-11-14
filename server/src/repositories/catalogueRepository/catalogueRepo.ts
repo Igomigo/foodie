@@ -50,7 +50,15 @@ function publicVendorStages(
   filter: FilterQuery<Vendor>,
 ): (PipelineStage.Match | PipelineStage.Lookup | PipelineStage.Project)[] {
   return [
-    { $match: { approvalStatus: "approved", ...filter } },
+    {
+      $match: {
+        approvalStatus: "approved",
+        ...(process.env.NODE_ENV === "production"
+          ? { isDemo: { $ne: true } }
+          : {}),
+        ...filter,
+      },
+    },
     {
       $lookup: {
         from: UserModel.collection.name,
@@ -69,6 +77,7 @@ function publicVendorStages(
         businessName: 1,
         description: 1,
         imageUrl: 1,
+        isDemo: 1,
         address: 1,
         approvalStatus: 1,
         acceptingOrders: 1,

@@ -11,7 +11,8 @@
     "test": "node --require ts-node/register --test --test-concurrency=1 test/*.test.cjs",
     "migrate:accounts": "ts-node src/scripts/migrateAccounts.ts",
     "format": "prettier --write . --ignore-unknown",
-    "format:check": "prettier --check . --ignore-unknown"
+    "format:check": "prettier --check . --ignore-unknown",
+    "seed:catalogue": "ts-node src/scripts/seedDemoCatalogue.ts"
   },
   "keywords": [],
   "author": "",
