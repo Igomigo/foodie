@@ -1,5 +1,5 @@
-import nigeria from "../../../shared/data/nigeria.json";
-import countries from "../../../shared/data/countries.json";
+import nigeria from "../data/nigeria.json";
+import countries from "../data/countries.json";
 
 export { nigeria, countries };
 
@@ -17,7 +17,7 @@ export function findLocation(stateName: string, cityName: string) {
   };
 }
 
-import lgaDirectory from "../../../shared/data/nigeria-lgas.json";
+import lgaDirectory from "../data/nigeria-lgas.json";
 
 export function localGovernments(stateName: string) {
   const state = nigeria.states.find((item) => item.name === stateName);

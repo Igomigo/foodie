@@ -37,7 +37,7 @@ services:
   server:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: docker/Dockerfile
     ports:
       - "2000:2000"
     environment:
@@ -50,9 +50,12 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - PORT=2000
       - CLIENT_URL=${CLIENT_URL}
-    volumes:
-      - .:/app
-      - /app/node_modules
+      - GEOAPIFY_API_KEY=${GEOAPIFY_API_KEY}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - MAIL_FROM=${MAIL_FROM}
     depends_on:
       mongodb:
         condition: service_healthy

@@ -1,0 +1,11 @@
+# Only include the files needed to build the API.
+**
+!docker/
+!docker/Dockerfile
+!package.json
+!package-lock.json
+!tsconfig.json
+!src/
+!src/**
+!data/
+!data/**

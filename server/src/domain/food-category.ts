@@ -3,7 +3,7 @@ export interface FoodCategory {
   name: string;
 }
 export const foodCategories =
-  require("../../../shared/data/food-categories.json") as FoodCategory[];
+  require("../../data/food-categories.json") as FoodCategory[];
 // Keep older records and bookmarked filters readable without a data migration.
 const categoryAliases: Record<string, string> = {
   "small-chops": "bakery-snacks",

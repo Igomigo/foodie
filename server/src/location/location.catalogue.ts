@@ -8,13 +8,13 @@ interface State {
   cities: City[];
 }
 
-export const nigeria = require("../../../shared/data/nigeria.json") as {
+export const nigeria = require("../../data/nigeria.json") as {
   country: string;
   countryCode: string;
   states: State[];
 };
 
-const localGovernments = require("../../../shared/data/nigeria-lgas.json") as {
+const localGovernments = require("../../data/nigeria-lgas.json") as {
   states: { stateCode: string; lgas: { id: string; name: string }[] }[];
 };
 

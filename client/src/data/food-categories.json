@@ -1,0 +1,11 @@
+[
+  { "id": "rice", "name": "Rice" },
+  { "id": "soups-swallows", "name": "Soups & swallows" },
+  { "id": "pasta-noodles", "name": "Pasta & noodles" },
+  { "id": "beans-yam", "name": "Beans & yam" },
+  { "id": "grills", "name": "Grills & protein" },
+  { "id": "bakery-snacks", "name": "Bakery & snacks" },
+  { "id": "breakfast", "name": "Breakfast" },
+  { "id": "desserts", "name": "Desserts & ice cream" },
+  { "id": "drinks", "name": "Drinks" }
+]

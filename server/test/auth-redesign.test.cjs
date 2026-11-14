@@ -58,7 +58,7 @@ test("canonical Nigerian location choices", () => {
 });
 
 test("LGA and device position validation keeps location input consistent", () => {
-  const directory = require("../../shared/data/nigeria-lgas.json");
+  const directory = require("../data/nigeria-lgas.json");
   assert.equal(directory.states.length, 37);
   assert.equal(directory.states.flatMap((state) => state.lgas).length, 774);
   assert.equal(

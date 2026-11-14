@@ -258,7 +258,7 @@ test("backend account flows", { timeout: 60000 }, async (t) => {
       assert.equal(result.body.data.location.stateCode, "ED");
       assert.equal(
         result.body.data.location.lgaCode,
-        require("../../shared/data/nigeria-lgas.json")
+        require("../data/nigeria-lgas.json")
           .states.find((state) => state.stateCode === "ED")
           .lgas.find((lga) => lga.name === "Oredo").id,
       );

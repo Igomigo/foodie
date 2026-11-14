@@ -14,6 +14,10 @@ MongoDB must support transactions: use a replica set, a sharded cluster, or Atla
 
 The server validates its signing secret, waits for MongoDB and indexes, and then starts listening. Shutdown stops HTTP traffic before closing database and Redis connections. Redis is lazy and only used by development demo endpoints; account creation, login, and profile retrieval do not depend on it.
 
+## Deployment
+
+See [Deploying to Railway](docs/railway.md) for the Node build, hosted database, service variables, healthcheck and Vercel connection. Set the Railway root directory to `/server`; all API code and static data are contained here. Docker is optional for local Compose and is not used by Railway. For live source reloads, run `npm run dev` on the host.
+
 ## Checks
 
 ```sh
@@ -55,7 +59,7 @@ Set `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, and `MAIL_FROM` in y
 
 ### Nigerian locations
 
-New signup locations are validated against the shared, versioned catalogue in `../shared/data`. The client uses the same catalogue for dependent country/state/city pickers. Nigeria is the only enabled country. Matching labels are canonicalized, and `countryCode`, `stateCode`, and `cityId` are stored alongside existing readable names. Mismatched states/cities or identifiers are rejected. Existing records are not rewritten.
+New signup locations are validated against the local versioned catalogue in `data`. The client bundles an identical copy in `client/src/data` for dependent country/state/city pickers. Nigeria is the only enabled country. Matching labels are canonicalized, and `countryCode`, `stateCode`, and `cityId` are stored alongside existing readable names. Mismatched states/cities or identifiers are rejected. Existing records are not rewritten.
 
 The catalogue contains 36 states plus FCT and 513 city/area entries. It is community-maintained, not an exhaustive settlement register. See its README for source, licence, refresh instructions, and deployment requirements. City selection supports broad local discovery; exact distance ranking needs separately consented customer coordinates and vendor coordinates, rather than city-centre estimates.
 
@@ -130,7 +134,7 @@ Public responses select customer-facing fields explicitly. Owner identity, accou
 
 `menuitems` references `vendors` through `vendorId`. Each meal has a name, category, optional description/image, price, NGN currency, publication and stock flags, and optional choice groups. Prices are non-negative safe integers in **kobo**: `350000` means ₦3,500. Choice prices are extra charges added to the base price.
 
-An option group has a name, `minSelections`, `maxSelections`, and choices with their own name, price and availability. Groups and choices keep stable IDs. A required protein selection could use `minSelections: 1`, `maxSelections: 1`; an optional extra uses `minSelections: 0`. New meals start unpublished. The shared category list lives in `../shared/data/food-categories.json`.
+An option group has a name, `minSelections`, `maxSelections`, and choices with their own name, price and availability. Groups and choices keep stable IDs. A required protein selection could use `minSelections: 1`, `maxSelections: 1`; an optional extra uses `minSelections: 0`. New meals start unpublished. The category list lives in `data/food-categories.json`.
 
 Catalogue writes, approvals and vendor dashboards are separate future work. No public route can create, approve or publish catalogue records. Automated tests populate isolated databases only; this change does not seed, migrate or edit application data.
 
@@ -276,7 +280,7 @@ A vendor can have independent `bannerUrl` and `logoUrl` fields. The customer sto
 
 Menu responses include every nonempty published section and its count, even when only one page of items has loaded. The optional `section` filter accepts that kitchen's section ID or `other`. Filtering and section ordering happen before pagination; unknown/foreign sections return `404`. Existing unassigned items remain readable under **More items**, without updating stored records. The first UI tab is always **All**, not “All meals”.
 
-Foodie categories live in `shared/data/food-categories.json`. **Bakery & snacks** includes small chops. The retired `small-chops` ID remains an input/read alias for `bakery-snacks`; filters match old and new records and responses present the canonical ID. No existing records are migrated. Public APIs retain their response envelope and existing fields.
+Foodie categories live in `data/food-categories.json`. **Bakery & snacks** includes small chops. The retired `small-chops` ID remains an input/read alias for `bakery-snacks`; filters match old and new records and responses present the canonical ID. No existing records are migrated. Public APIs retain their response envelope and existing fields.
 
 ### Local meal discovery
 

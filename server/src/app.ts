@@ -3,6 +3,7 @@ import morgan from "morgan";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
+import mongoose from "mongoose";
 import { createBaseRouter } from "./base/base.route";
 import { authRouter } from "./auth/auth.route";
 import { userRouter } from "./user/user.route";
@@ -16,11 +17,21 @@ import { response } from "./interfaces/apiResponse";
 
 export function createApp() {
   const app = express();
+  const proxyHops = Number(process.env.TRUST_PROXY_HOPS || 0);
+  if (!Number.isInteger(proxyHops) || proxyHops < 0)
+    throw new Error("TRUST_PROXY_HOPS must be a non-negative integer");
+  app.set("trust proxy", proxyHops);
   app.disable("x-powered-by");
   app.use(cors(createCorsOptions()));
   app.use(helmet());
   app.use(
-    ["/api/v1/locations", "/api/v1/users", "/api/v1/discovery"],
+    [
+      "/api/v1/auth",
+      "/api/v1/ai",
+      "/api/v1/locations",
+      "/api/v1/users",
+      "/api/v1/discovery",
+    ],
     (_req, res, next) => {
       res.set("Cache-Control", "no-store");
       next();
@@ -51,6 +62,14 @@ export function createApp() {
   app.use(express.json({ limit: "100kb" }));
   app.use(cookieParser());
   app.use(express.urlencoded({ extended: true, limit: "100kb" }));
+
+  app.get("/health", (_req, res) => {
+    const ready = mongoose.connection.readyState === 1;
+    res.set("Cache-Control", "no-store");
+    res
+      .status(ready ? 200 : 503)
+      .json({ status: ready ? "ok" : "unavailable" });
+  });
 
   app.use("/api/v1", createBaseRouter());
   app.use("/api/v1/auth", authRouter);

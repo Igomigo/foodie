@@ -3,7 +3,10 @@ import { mkdir, writeFile } from "node:fs/promises";
 // Pin updates so the client and server always use the same location catalogue.
 const commit = "cc7cf13bbfd86110ff6658097802d57d81be5319";
 const base = `https://raw.githubusercontent.com/dr5hn/countries-states-cities-database/${commit}`;
-const directory = new URL("../shared/data/", import.meta.url);
+const directories = [
+  new URL("../client/src/data/", import.meta.url),
+  new URL("../server/data/", import.meta.url),
+];
 
 async function download(path) {
   const response = await fetch(`${base}/${path}`);
@@ -40,19 +43,19 @@ const countries = countryData.map((country) => ({
   code: country.iso2,
   name: country.name,
 }));
-await mkdir(directory, { recursive: true });
-await writeFile(
-  new URL("nigeria.json", directory),
-  JSON.stringify(catalogue, null, 2) + "\n",
-);
-await writeFile(
-  new URL("countries.json", directory),
-  JSON.stringify(countries, null, 2) + "\n",
-);
-await writeFile(
-  new URL("LICENSE.locations.txt", directory),
-  await (await download("LICENSE")).text(),
-);
+const license = await (await download("LICENSE")).text();
+for (const directory of directories) {
+  await mkdir(directory, { recursive: true });
+  await writeFile(
+    new URL("nigeria.json", directory),
+    JSON.stringify(catalogue, null, 2) + "\n",
+  );
+  await writeFile(
+    new URL("countries.json", directory),
+    JSON.stringify(countries, null, 2) + "\n",
+  );
+  await writeFile(new URL("LICENSE.locations.txt", directory), license);
+}
 console.log(
   `Saved ${catalogue.states.length} states/FCT and ${catalogue.states.reduce((count, state) => count + state.cities.length, 0)} cities/areas.`,
 );

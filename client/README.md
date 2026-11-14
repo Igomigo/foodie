@@ -2,9 +2,9 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-Copy `.env.example` to `.env.local` and set `NEXT_PUBLIC_API_URL` to the backend's `/api/v1` URL. The local server defaults to port 2000. Use the deployed HTTPS API URL in production.
+Copy `.env.example` to `.env.local` and set `NEXT_PUBLIC_API_URL` to the backend's `/api/v1` URL. The local server defaults to port 2000. On Vercel, set `NEXT_PUBLIC_API_URL=/api/v1` and `API_ORIGIN=https://your-api.up.railway.app`, then redeploy. The Next.js rewrite forwards API requests to Railway while the browser uses the frontend's origin. Refresh cookies remain HttpOnly, Secure and SameSite=Lax; no third-party cookies or custom API domain are required. See the [deployment guide](../server/docs/railway.md).
 
-Authentication screens share the Foodie auth layout and ordinary Tailwind form components. Signup collects account details first, signs the customer in, then opens the dedicated `/location` step. If the automatic sign-in fails after account creation, it returns to login rather than retrying signup. Both applications read the same versioned location catalogue in `../shared/data`; include that directory when building from a checkout. See its README for data attribution and refresh instructions. Password recovery uses the backend's Nodemailer/SMTP setup documented in `../server/README.md`.
+Authentication screens share the Foodie auth layout and ordinary Tailwind form components. Signup collects account details first, signs the customer in, then opens the dedicated `/location` step. If the automatic sign-in fails after account creation, it returns to login rather than retrying signup. The client reads its own versioned location catalogue in `src/data`; the server keeps an identical local copy in `server/data`. Each app builds independently. See [the data README](src/data/README.md) for attribution and scripts that refresh both copies together. Password recovery uses the backend's Nodemailer/SMTP setup documented in `../server/README.md`.
 
 First, run the development server:
 
@@ -57,7 +57,7 @@ The review form asks for street/address, city and state. Apartment, neighbourhoo
 
 Leaflet renders the map. Its custom tile loader calls Foodie's authenticated HTTP service, rather than putting the Geoapify key or access token in an image URL. The server requests Geoapify's high-density OSM Bright PNG tiles with a bounded cache and request limits. Visible Leaflet, Geoapify and OpenStreetMap attribution is retained. Map fetches and object URLs are owned by the map lifecycle. Surrounding loaded tiles are retained while panning; transient tile failures retry once and a reload keeps the current map position. Dragging and touch gestures are available immediately. Desktop wheel/two-finger scrolling pans, while trackpad pinch (ctrl+wheel), touch pinch and the zoom buttons zoom. Pin address lookups wait until movement stops and cancel superseded requests through `usePinAddress`. Resize events preserve the map centre without triggering address changes. An initial Nigeria-wide view is only an overview: it cannot be saved as a customer position; users must zoom to street level and select a pin. Map failures offer a reload and the area-only fallback.
 
-Only `NEXT_PUBLIC_API_URL` is needed on the client. Configure `GEOAPIFY_API_KEY` on the server. No browser-facing mapping key is required. Shared state/city and 774-LGA snapshots remain under `shared/data`, with their attribution and refresh instructions in its README. They are not proof of an address or delivery eligibility.
+Local development uses `NEXT_PUBLIC_API_URL`; the Vercel deployment also uses the server-side `API_ORIGIN` rewrite configuration described above. Configure `GEOAPIFY_API_KEY` on the server. No browser-facing mapping key is required. State/city and 774-LGA snapshots are bundled locally under `src/data`, with attribution and refresh instructions in its README. They are not proof of an address or delivery eligibility.
 
 ## Daily Discover banner
 

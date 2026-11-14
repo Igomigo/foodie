@@ -1240,7 +1240,7 @@ test("kitchen branding falls back cleanly when supplied images fail", () => {
 test("all discovery categories stay directly selectable without a More dialog", () => {
   const Categories =
     require("../src/components/home/CravingCategories.tsx").default;
-  const list = require("../../shared/data/food-categories.json");
+  const list = require("../src/data/food-categories.json");
   let selected;
   const view = renderComponent(
     React.createElement(Categories, {

@@ -2,9 +2,15 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 
 const commit = "7b42d69f9cf85136acc6ee1bfa023944831e4d3d";
 const base = `https://raw.githubusercontent.com/open-admin-data/nigeria-administrative-divisions/${commit}`;
-const directory = new URL("../shared/data/", import.meta.url);
+const directories = [
+  new URL("../client/src/data/", import.meta.url),
+  new URL("../server/data/", import.meta.url),
+];
 const nigeria = JSON.parse(
-  await readFile(new URL("nigeria.json", directory), "utf8"),
+  await readFile(
+    new URL("../server/data/nigeria.json", import.meta.url),
+    "utf8",
+  ),
 );
 async function download(path) {
   const response = await fetch(`${base}/${path}`);
@@ -25,9 +31,7 @@ if (
   states.reduce((count, state) => count + state.lgas.length, 0) !== 774
 )
   throw new Error("Expected 774 LGAs across 36 states and FCT");
-await mkdir(directory, { recursive: true });
-await writeFile(
-  new URL("nigeria-lgas.json", directory),
+const catalogue =
   JSON.stringify(
     {
       source: {
@@ -39,10 +43,11 @@ await writeFile(
     },
     null,
     2,
-  ) + "\n",
-);
-await writeFile(
-  new URL("LICENSE.lgas.txt", directory),
-  await (await download("LICENSE")).text(),
-);
+  ) + "\n";
+const license = await (await download("LICENSE")).text();
+for (const directory of directories) {
+  await mkdir(directory, { recursive: true });
+  await writeFile(new URL("nigeria-lgas.json", directory), catalogue);
+  await writeFile(new URL("LICENSE.lgas.txt", directory), license);
+}
 console.log("Saved 774 LGAs across 37 states/FCT.");
