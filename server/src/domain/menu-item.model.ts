@@ -22,6 +22,7 @@ export interface MenuItem {
   name: string;
   description?: string;
   category: string;
+  sectionId?: Types.ObjectId;
   imageUrl?: string;
   price: number;
   currency: "NGN";
@@ -78,6 +79,7 @@ const optionSchema = new Schema<MenuOption>({
 const menuItemSchema = new Schema<MenuItem>(
   {
     vendorId: { type: Schema.Types.ObjectId, ref: "Vendor", required: true },
+    sectionId: { type: Schema.Types.ObjectId },
     name: { type: String, required: true, trim: true, maxlength: 150 },
     description: { type: String, trim: true, maxlength: 1000 },
     category: { type: String, required: true, enum: foodCategoryIds },
@@ -92,5 +94,7 @@ const menuItemSchema = new Schema<MenuItem>(
 );
 
 menuItemSchema.index({ vendorId: 1, isPublished: 1, category: 1, _id: 1 });
+
+menuItemSchema.index({ vendorId: 1, isPublished: 1, sectionId: 1, _id: 1 });
 
 export const MenuItemModel = model<MenuItem>("MenuItem", menuItemSchema);

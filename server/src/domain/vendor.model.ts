@@ -1,5 +1,6 @@
 import { model, Schema, Types } from "mongoose";
 import { Location, locationSchema } from "./location.schema";
+import { MenuSection, menuSectionSchema } from "./menu-section.schema";
 import { OpeningHours, openingHoursSchema } from "./opening-hours.schema";
 
 export interface Vendor {
@@ -9,6 +10,9 @@ export interface Vendor {
   businessPhone?: string;
   description?: string;
   imageUrl?: string;
+  bannerUrl?: string;
+  logoUrl?: string;
+  menuSections: MenuSection[];
   acceptingOrders: boolean;
   deliveryRadiusMeters?: number;
   isDemo: boolean;
@@ -31,6 +35,18 @@ const vendorSchema = new Schema<Vendor>(
     businessPhone: { type: String, trim: true },
     description: { type: String, trim: true, maxlength: 1000 },
     imageUrl: { type: String, trim: true, maxlength: 2000 },
+    bannerUrl: { type: String, trim: true, maxlength: 2000 },
+    logoUrl: { type: String, trim: true, maxlength: 2000 },
+    menuSections: {
+      type: [menuSectionSchema],
+      default: [],
+      validate: (sections: MenuSection[]) =>
+        sections.length <= 50 &&
+        new Set(sections.map((section) => section.name.trim().toLowerCase()))
+          .size === sections.length &&
+        new Set(sections.map((section) => section._id.toString())).size ===
+          sections.length,
+    },
     acceptingOrders: { type: Boolean, required: true, default: false },
     deliveryRadiusMeters: {
       type: Number,

@@ -8,6 +8,7 @@ import { httpError } from "../utils/httpError";
 
 export interface MenuQuery {
   q?: string;
+  section?: string;
   category?: string;
   page: number;
   limit: number;
@@ -26,7 +27,10 @@ const menuFields = {
   limit: Joi.number().integer().min(1).max(50).default(20),
 };
 
-const menuQuerySchema = Joi.object(menuFields).unknown(false);
+const menuQuerySchema = Joi.object({
+  ...menuFields,
+  section: Joi.string().pattern(/^(other|[a-fA-F0-9]{24})$/),
+}).unknown(false);
 const browseQuerySchema = Joi.object({
   ...menuFields,
   stateCode: Joi.string().trim().uppercase().required(),

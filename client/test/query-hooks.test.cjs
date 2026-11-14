@@ -11,6 +11,17 @@ const dom = new JSDOM("<!doctype html><html><body></body></html>", {
 });
 global.window = dom.window;
 global.document = dom.window.document;
+// Radix dialogs use these browser APIs for presence, focus and dismissal.
+for (const name of [
+  "getComputedStyle",
+  "MutationObserver",
+  "NodeFilter",
+  "HTMLElement",
+  "HTMLInputElement",
+  "CustomEvent",
+  "Node",
+])
+  global[name] = dom.window[name];
 global.localStorage = dom.window.localStorage;
 Object.defineProperty(global, "navigator", {
   configurable: true,
@@ -1088,4 +1099,167 @@ test("menu prices include required paid choices and preserve kobo amounts", () =
   };
   assert.equal(minimumMealPrice(item), 430050);
   assert.match(formatPrice(430050), /4,300\.5/);
+});
+
+const {
+  useDiscoveryFeed,
+  useDiscoveryMeals,
+} = require("../src/hooks/useDiscovery.ts");
+test("kitchen sections preserve branding while loading, but never across saved destinations", async () => {
+  client.setQueryData(profileKey(saved.userId), saved);
+  const waiting = deferred();
+  handleRequest = async (config) => {
+    requests.push(config);
+    if (config.params.section) return waiting.promise;
+    return response(config, {
+      data: {
+        vendor: { vendorId: "kitchen", businessName: "Test kitchen" },
+        sections: [{ id: "section", name: "Meals", count: 1 }],
+        items: [{ menuItemId: "a" }],
+        page: 1,
+        limit: 20,
+        hasMore: false,
+      },
+    });
+  };
+  const hook = renderHook(({ section }) => useKitchenMenu("kitchen", section), {
+    wrapper,
+    initialProps: { section: "" },
+  });
+  await waitFor(() => assert.equal(hook.result.current.isSuccess, true));
+  assert.equal(
+    hook.result.current.data.pages[0].vendor.businessName,
+    "Test kitchen",
+  );
+  hook.rerender({ section: "section" });
+  await waitFor(() =>
+    assert.equal(hook.result.current.isPlaceholderData, true),
+  );
+  assert.equal(
+    hook.result.current.data.pages[0].vendor.businessName,
+    "Test kitchen",
+  );
+  act(() => client.setQueryData(profileKey(saved.userId), updated));
+  await waitFor(() =>
+    assert.equal(hook.result.current.isPlaceholderData, false),
+  );
+  assert.equal(
+    hook.result.current.data,
+    undefined,
+    "old destination branding and menu are not reused",
+  );
+});
+test("feed reads are shared and meal requests retain the same food and availability filters", async () => {
+  client.setQueryData(profileKey(saved.userId), saved);
+  handleRequest = async (config) => {
+    requests.push(config);
+    if (config.url === "/discovery/feed")
+      return response(config, {
+        data: {
+          mode: "city",
+          categories: [
+            { id: "bakery-snacks", name: "Bakery & snacks", count: 3 },
+          ],
+          meals: [],
+        },
+      });
+    assert.equal(config.url, "/discovery/meals");
+    assert.equal(config.params.category, "bakery-snacks");
+    assert.equal(config.params.openOnly, true);
+    return response(config, {
+      data: { mode: "city", items: [], page: 1, limit: 12, hasMore: false },
+    });
+  };
+  const one = render(() => useDiscoveryFeed());
+  const two = render(() => useDiscoveryFeed());
+  await waitFor(() => assert.equal(one.result.current.isSuccess, true));
+  assert.equal(two.result.current.data.categories[0].id, "bakery-snacks");
+  assert.equal(requests.length, 1);
+  const meals = render(() =>
+    useDiscoveryMeals({
+      q: "puff-puff",
+      category: "bakery-snacks",
+      openOnly: true,
+    }),
+  );
+  await waitFor(() => assert.equal(meals.result.current.isSuccess, true));
+  assert.equal(requests.length, 2);
+});
+
+test("kitchen hours show overnight service in Nigerian time and clearly label 24-hour opening", () => {
+  const {
+    kitchenHoursSummary,
+    hoursLabel,
+  } = require("../src/components/kitchens/KitchenHours.tsx");
+  const overnight = [{ day: 5, opensAt: "22:00", closesAt: "02:00" }];
+  assert.equal(
+    kitchenHoursSummary(overnight, new Date("2026-11-14T00:30:00Z")).label,
+    "Open until 2 am",
+  );
+  assert.equal(
+    kitchenHoursSummary(overnight, new Date("2026-11-14T01:00:00Z")).label,
+    "Today · Closed",
+  );
+  assert.equal(
+    hoursLabel({ opensAt: "00:00", closesAt: "24:00" }),
+    "Open 24 hours",
+  );
+});
+
+test("kitchen branding falls back cleanly when supplied images fail", () => {
+  const {
+    KitchenLogo,
+    KitchenBanner,
+  } = require("../src/components/kitchens/KitchenBranding.tsx");
+  const logo = renderComponent(
+    React.createElement(KitchenLogo, {
+      src: "/missing-logo.png",
+      name: "Test Kitchen",
+    }),
+  );
+  fireEvent.error(logo.getByAltText("Test Kitchen logo"));
+  assert.equal(logo.getByLabelText("Test Kitchen initials").textContent, "TK");
+  logo.unmount();
+  const banner = renderComponent(
+    React.createElement(KitchenBanner, {
+      src: "/missing-banner.png",
+      name: "Test Kitchen",
+    }),
+  );
+  fireEvent.error(banner.getByAltText("Test Kitchen cover photo"));
+  assert.ok(banner.getByText("Good food lives here."));
+});
+
+test("choosing a discovery category closes the picker and restores focus", async () => {
+  const Categories =
+    require("../src/components/home/CravingCategories.tsx").default;
+  let chosen = "";
+  const list = [
+    { id: "rice", name: "Rice" },
+    { id: "bakery-snacks", name: "Bakery & snacks" },
+  ];
+  const view = renderComponent(
+    React.createElement(Categories, {
+      selected: "rice",
+      categories: list,
+      allCategories: list,
+      onSelect: (value) => {
+        chosen = value;
+      },
+    }),
+  );
+  fireEvent.click(view.getByRole("button", { name: "More" }));
+  await waitFor(() => assert.ok(view.getByRole("dialog")));
+  const { within } = require("@testing-library/react");
+  fireEvent.click(
+    within(view.getByRole("dialog")).getByRole("button", {
+      name: "Bakery & snacks",
+    }),
+  );
+  assert.equal(chosen, "bakery-snacks");
+  await waitFor(() => assert.equal(view.queryByRole("dialog"), null));
+  assert.equal(
+    document.activeElement,
+    view.getByRole("button", { name: "More" }),
+  );
 });

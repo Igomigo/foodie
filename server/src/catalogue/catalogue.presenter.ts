@@ -1,3 +1,4 @@
+import { canonicalFoodCategory } from "../domain/food-category";
 import { MenuItem } from "../domain/menu-item.model";
 import { Vendor } from "../domain/vendor.model";
 import { findNigerianLocation } from "../location/location.catalogue";
@@ -15,6 +16,8 @@ export function publicVendor(vendor: Vendor, now = new Date()) {
     businessName: vendor.businessName,
     description: vendor.description,
     imageUrl: vendor.imageUrl,
+    bannerUrl: vendor.bannerUrl,
+    logoUrl: vendor.logoUrl,
     isDemo: vendor.isDemo === true,
     address: {
       country: address.country,
@@ -55,7 +58,8 @@ export function publicMenuItem(
     vendorName: vendor.businessName,
     name: item.name,
     description: item.description,
-    category: item.category,
+    category: canonicalFoodCategory(item.category),
+    sectionId: item.sectionId?.toString(),
     imageUrl: item.imageUrl,
     price: item.price,
     currency: item.currency,

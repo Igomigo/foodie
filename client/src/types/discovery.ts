@@ -8,7 +8,10 @@ export interface Kitchen {
   businessName: string;
   description?: string;
   imageUrl?: string;
+  bannerUrl?: string;
+  logoUrl?: string;
   address: { city: string; area?: string; state: string };
+  openingHours: { day: number; opensAt: string; closesAt: string }[];
   isOpen: boolean;
   isAcceptingOrders: boolean;
   isDemo: boolean;
@@ -45,6 +48,7 @@ export interface MenuItem {
   name: string;
   description?: string;
   category: string;
+  sectionId?: string;
   imageUrl?: string;
   price: number;
   currency: "NGN";
@@ -52,7 +56,13 @@ export interface MenuItem {
   canOrder: boolean;
   options: MenuOption[];
 }
+export interface MenuSection {
+  id: string;
+  name: string;
+  count: number;
+}
 export interface KitchenMenuResults extends Page<MenuItem> {
+  sections: MenuSection[];
   vendor: Kitchen;
   mode: DiscoveryMode;
 }
@@ -60,4 +70,17 @@ export interface DiscoveryFilters {
   q: string;
   category: string;
   openOnly: boolean;
+}
+
+export interface DiscoveryMeal extends MenuItem {
+  kitchen: Kitchen;
+}
+export interface MealResults extends Page<DiscoveryMeal> {
+  mode: DiscoveryMode;
+  city?: string;
+}
+export interface DiscoveryFeed {
+  mode: DiscoveryMode;
+  categories: (FoodCategory & { count: number })[];
+  meals: DiscoveryMeal[];
 }

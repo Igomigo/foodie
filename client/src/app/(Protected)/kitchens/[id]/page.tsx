@@ -15,7 +15,7 @@ export default async function KitchenPage({
         </p>
       }
     >
-      <KitchenMenu id={id} />
+      <KitchenMenu key={id} id={id} />
     </Suspense>
   );
 }

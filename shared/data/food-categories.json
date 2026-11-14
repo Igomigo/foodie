@@ -1,8 +1,11 @@
 [
-  { "id": "rice", "name": "Rice bowls" },
+  { "id": "rice", "name": "Rice" },
   { "id": "soups-swallows", "name": "Soups & swallows" },
-  { "id": "grills", "name": "Off the grill" },
-  { "id": "small-chops", "name": "Small chops" },
+  { "id": "pasta-noodles", "name": "Pasta & noodles" },
+  { "id": "beans-yam", "name": "Beans & yam" },
+  { "id": "grills", "name": "Grills & protein" },
+  { "id": "bakery-snacks", "name": "Bakery & snacks" },
   { "id": "breakfast", "name": "Breakfast" },
+  { "id": "desserts", "name": "Desserts & ice cream" },
   { "id": "drinks", "name": "Drinks" }
 ]

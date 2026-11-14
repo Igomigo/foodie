@@ -43,3 +43,10 @@ export function minimumMealPrice(item: MenuItem) {
     }, 0)
   );
 }
+
+export function formatMealPrice(item: MenuItem) {
+  const hasExtras = item.options.some((option) =>
+    option.choices.some((choice) => choice.isAvailable && choice.price > 0),
+  );
+  return `${hasExtras ? "From " : ""}${formatPrice(minimumMealPrice(item))}`;
+}

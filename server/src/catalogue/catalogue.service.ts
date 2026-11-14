@@ -31,10 +31,37 @@ async function findVendor(id: string) {
 
 export async function getVendorMenu(id: string, query: MenuQuery) {
   const vendor = await findVendor(id);
-  const items = await catalogueRepository.listVendorMenu(id, query);
+  const counts = await catalogueRepository.menuSectionCounts(id);
+  const sections = [...(vendor.menuSections ?? [])]
+    .sort(
+      (a, b) =>
+        a.position - b.position ||
+        a._id.toString().localeCompare(b._id.toString()),
+    )
+    .map((section) => ({
+      id: section._id.toString(),
+      name: section.name,
+      count: counts.find((entry) => entry._id?.equals(section._id))?.count ?? 0,
+    }))
+    .filter((section) => section.count > 0);
+  const otherCount = counts
+    .filter(
+      (entry) =>
+        !sections.some((section) => section.id === entry._id?.toString()),
+    )
+    .reduce((total, entry) => total + entry.count, 0);
+  if (otherCount)
+    sections.push({ id: "other", name: "More items", count: otherCount });
+  if (
+    query.section &&
+    !sections.some((section) => section.id === query.section)
+  )
+    throw httpError(404, "Menu section not found in this kitchen");
+  const items = await catalogueRepository.listVendorMenu(vendor, query);
   const now = new Date();
   return {
     vendor: publicVendor(vendor, now),
+    sections,
     items: items
       .slice(0, query.limit)
       .map((item) => publicMenuItem(item, vendor, now)),

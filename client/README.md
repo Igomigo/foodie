@@ -92,3 +92,9 @@ Axios still attaches and refreshes authentication tokens; React Query manages th
 Run `npm test` for hook integration checks as well as the location/catalogue tests. Hook tests use React Testing Library with mocked HTTP/browser responses, including deduplication, invalidation, cancellation, session isolation and failure cases. They never contact the external location provider.
 
 References: [TanStack defaults](https://tanstack.com/query/latest/docs/framework/react/guides/important-defaults), [mutation invalidation](https://tanstack.com/query/latest/docs/framework/react/guides/invalidations-from-mutations), [query cancellation](https://tanstack.com/query/latest/docs/framework/react/guides/query-cancellation).
+
+### Kitchen storefront and discovery
+
+Kitchen menu sections belong to each kitchen and are separate from Foodie's shared discovery categories. The section strip begins with **All**. Small chops are classified under **Bakery & snacks**. Discover has a short kitchen preview, local meal collections and full kitchen/meal browsing views. Meal links open the selected dish even if it is outside the first menu page.
+
+The kitchen cover and logo have independent fallbacks. Cover images and food photography reuse the existing documented assets. `public/images/kitchens/osas-logo.svg` is an original typographic monogram created for the fictional Osas Kitchen development fixture; it is not a real restaurant's logo. Other demo kitchens use their initials, and Night Bowl intentionally omits a banner to exercise the fallback.

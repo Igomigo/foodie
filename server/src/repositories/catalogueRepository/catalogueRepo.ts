@@ -1,3 +1,5 @@
+import { searchPattern } from "../../utils/searchPattern";
+import { foodCategoryValues } from "../../domain/food-category";
 import { FilterQuery, PipelineStage, Types } from "mongoose";
 import { BrowseQuery, MenuQuery } from "../../catalogue/catalogue.validation";
 import { MenuItem, MenuItemModel } from "../../domain/menu-item.model";
@@ -10,10 +12,6 @@ import {
 
 export interface CatalogueMenuItem extends MenuItem {
   vendor: Vendor;
-}
-
-function searchPattern(text: string) {
-  return new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
 }
 
 function locationFilter(query: BrowseQuery): FilterQuery<Vendor> {
@@ -77,6 +75,9 @@ function publicVendorStages(
         businessName: 1,
         description: 1,
         imageUrl: 1,
+        bannerUrl: 1,
+        logoUrl: 1,
+        menuSections: 1,
         isDemo: 1,
         address: 1,
         approvalStatus: 1,
@@ -89,7 +90,8 @@ function publicVendorStages(
 
 function menuFilter(query: MenuQuery): FilterQuery<MenuItem> {
   const filter: FilterQuery<MenuItem> = { isPublished: true };
-  if (query.category) filter.category = query.category;
+  if (query.category)
+    filter.category = { $in: foodCategoryValues(query.category) };
   if (query.q) {
     const pattern = searchPattern(query.q);
     filter.$or = [{ name: pattern }, { description: pattern }];
@@ -120,7 +122,9 @@ export const catalogueRepository = {
             {
               $match: {
                 isPublished: true,
-                ...(query.category ? { category: query.category } : {}),
+                ...(query.category
+                  ? { category: { $in: foodCategoryValues(query.category) } }
+                  : {}),
               },
             },
             { $limit: 1 },
@@ -145,13 +149,54 @@ export const catalogueRepository = {
       .exec();
     return vendors[0] ?? null;
   },
-  listVendorMenu(vendorId: string, query: MenuQuery) {
-    return MenuItemModel.find({ ...menuFilter(query), vendorId })
-      .sort({ _id: 1 })
-      .skip((query.page - 1) * query.limit)
-      .limit(query.limit + 1)
-      .maxTimeMS(5000)
-      .lean()
+  menuSectionCounts(vendorId: string) {
+    return MenuItemModel.aggregate<{ _id?: Types.ObjectId; count: number }>([
+      { $match: { vendorId: new Types.ObjectId(vendorId), isPublished: true } },
+      { $group: { _id: "$sectionId", count: { $sum: 1 } } },
+    ])
+      .option({ maxTimeMS: 5000 })
+      .exec();
+  },
+  listVendorMenu(vendor: Vendor, query: MenuQuery) {
+    const sectionIds = [...(vendor.menuSections ?? [])]
+      .sort(
+        (a, b) =>
+          a.position - b.position ||
+          a._id.toString().localeCompare(b._id.toString()),
+      )
+      .map((section) => section._id);
+    const sectionFilter =
+      query.section === "other"
+        ? { sectionId: { $nin: sectionIds } }
+        : query.section
+          ? { sectionId: new Types.ObjectId(query.section) }
+          : {};
+    return MenuItemModel.aggregate<MenuItem>([
+      {
+        $match: {
+          ...menuFilter(query),
+          vendorId: vendor._id,
+          ...sectionFilter,
+        },
+      },
+      {
+        $set: {
+          sectionPosition: { $indexOfArray: [sectionIds, "$sectionId"] },
+        },
+      },
+      {
+        $set: {
+          sectionPosition: {
+            $cond: [{ $lt: ["$sectionPosition", 0] }, 999, "$sectionPosition"],
+          },
+        },
+      },
+      { $sort: { sectionPosition: 1, _id: 1 } },
+      { $skip: (query.page - 1) * query.limit },
+      { $limit: query.limit + 1 },
+      { $unset: "sectionPosition" },
+    ])
+      .option({ maxTimeMS: 5000 })
       .exec();
   },
   listMenuItems(query: BrowseQuery) {

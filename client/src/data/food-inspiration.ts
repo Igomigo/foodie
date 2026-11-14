@@ -3,7 +3,7 @@ export const foodCategories = [
   "Rice bowls",
   "Soups & swallows",
   "Off the grill",
-  "Small chops",
+  "Bakery & snacks",
 ] as const;
 
 export type FoodCategory = (typeof foodCategories)[number];
@@ -128,7 +128,7 @@ export const dishes: Dish[] = [
   {
     id: "small-chops",
     name: "Small chops, big enjoyment",
-    category: "Small chops",
+    category: "Bakery & snacks",
     label: "THE SOMETHING LIGHT",
     description: "One puff-puff is never the plan.",
     story:

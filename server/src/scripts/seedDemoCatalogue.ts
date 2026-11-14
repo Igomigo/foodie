@@ -49,12 +49,32 @@ export async function seedDemoCatalogue(apply = false) {
       roles: ["user", "vendor"],
       isActive: true,
     });
+    const sectionNames: Record<string, string> = {
+      rice: kitchen.slug === "rice-room" ? "Rice specials" : "Meals",
+      "soups-swallows": "Soups & swallows",
+      grills: "Protein",
+      "bakery-snacks": "Bakery & snacks",
+    };
+    const sectionCategories = [
+      ...new Set(kitchen.meals.map((key) => demoMeals[key].category)),
+    ];
+    const menuSections = sectionCategories.map((category, position) => ({
+      _id: demoId(`section:${kitchen.slug}:${category}`),
+      name: sectionNames[category],
+      position,
+    }));
     const vendor = new VendorModel({
       _id: demoId(`vendor:${kitchen.slug}`),
       ownerId: owner._id,
       businessName: kitchen.name,
       description: kitchen.description,
       imageUrl: demoMeals[kitchen.meals[0]].imageUrl,
+      bannerUrl: kitchen.closed
+        ? undefined
+        : demoMeals[kitchen.meals[0]].imageUrl,
+      logoUrl:
+        kitchen.slug === "osas" ? "/images/kitchens/osas-logo.svg" : undefined,
+      menuSections,
       isDemo: true,
       approvalStatus: kitchen.pending ? "pending" : "approved",
       acceptingOrders: true,
@@ -83,6 +103,9 @@ export async function seedDemoCatalogue(apply = false) {
           _id: demoId(`meal:${kitchen.slug}:${key}`),
           vendorId: vendor._id,
           ...demoMeals[key],
+          sectionId: demoId(
+            `section:${kitchen.slug}:${demoMeals[key].category}`,
+          ),
           isPublished: true,
           isAvailable: !(kitchen.slug === "rice-room" && key === "chops"),
           options:

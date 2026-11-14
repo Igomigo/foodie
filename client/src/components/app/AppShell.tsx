@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { Sparkles } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
@@ -9,6 +10,7 @@ import { assistantName } from "@/data/assistant";
 import AIChatModal from "@/components/AIChatModal";
 
 export default function AppShell({ children }: { children: ReactNode }) {
+  const kitchenPage = usePathname().startsWith("/kitchens/");
   const [assistantOpen, setAssistantOpen] = useState(false);
   const { isError: profileError } = useProfile();
   return (
@@ -19,7 +21,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
       >
         Skip to content
       </a>
-      <AppHeader />
+      <div className={kitchenPage ? "hidden md:block" : ""}>
+        <AppHeader />
+      </div>
       {profileError && (
         <p
           role="status"
@@ -31,7 +35,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
       <main
         id="app-content"
         tabIndex={-1}
-        className="mx-auto max-w-[1360px] px-6 pt-7 pb-40 outline-none sm:px-10 md:pb-28 lg:px-14 lg:pt-10"
+        className={
+          kitchenPage
+            ? "mx-auto max-w-[1360px] pb-40 outline-none sm:px-10 sm:pt-7 md:pb-28 lg:px-14"
+            : "mx-auto max-w-[1360px] px-6 pt-7 pb-40 outline-none sm:px-10 md:pb-28 lg:px-14 lg:pt-10"
+        }
       >
         {children}
       </main>

@@ -16,6 +16,7 @@ export default function NearbyKitchens({
   onRetry,
   onMore,
   onClear,
+  preview = false,
 }: {
   pages?: KitchenResults[];
   loading: boolean;
@@ -28,9 +29,11 @@ export default function NearbyKitchens({
   onRetry: () => void;
   onMore: () => void;
   onClear: () => void;
+  preview?: boolean;
 }) {
   const first = pages?.[0];
-  const kitchens = pages?.flatMap((page) => page.items) ?? [];
+  const allKitchens = pages?.flatMap((page) => page.items) ?? [];
+  const kitchens = preview ? allKitchens.slice(0, 6) : allKitchens;
   const locationRequired = first?.mode === "location-required";
   return (
     <section
@@ -143,13 +146,17 @@ export default function NearbyKitchens({
       ) : (
         <>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {kitchens.map((kitchen) => (
-              <KitchenCard
+            {kitchens.map((kitchen, index) => (
+              <div
                 key={kitchen.vendorId}
-                kitchen={kitchen}
-                categories={categories}
-                returnTo={returnTo}
-              />
+                className={preview && index >= 3 ? "hidden sm:block" : ""}
+              >
+                <KitchenCard
+                  kitchen={kitchen}
+                  categories={categories}
+                  returnTo={returnTo}
+                />
+              </div>
             ))}
           </div>
           {first?.mode === "nearby" && (
@@ -171,14 +178,18 @@ export default function NearbyKitchens({
               </button>
             </p>
           )}
-          {hasMore && (
+          {(hasMore || (preview && allKitchens.length > 3)) && (
             <div className="mt-6 text-center">
               <button
                 disabled={fetching}
                 onClick={onMore}
                 className="min-h-11 rounded-full border border-foodie-line bg-white px-6 text-xs font-medium disabled:opacity-50"
               >
-                {fetching ? "Loading kitchens…" : "More kitchens"}
+                {fetching
+                  ? "Loading kitchens…"
+                  : preview
+                    ? "See all kitchens"
+                    : "More kitchens"}
               </button>
             </div>
           )}

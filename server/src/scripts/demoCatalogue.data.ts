@@ -60,7 +60,7 @@ export const demoMeals = {
   chops: {
     name: "Small chops box",
     description: "Golden puff-puff, samosas and spring rolls.",
-    category: "small-chops",
+    category: "bakery-snacks",
     imageUrl: "/images/foodie-small-chops.png",
     price: 300000,
   },

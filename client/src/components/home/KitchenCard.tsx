@@ -16,11 +16,11 @@ export default function KitchenCard({
   return (
     <Link
       href={`/kitchens/${kitchen.vendorId}?from=${encodeURIComponent(returnTo)}`}
-      className="group block overflow-hidden rounded-3xl border border-foodie-line bg-white/60 transition-shadow hover:shadow-[0_12px_32px_#263c310d] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-foodie-action"
+      className="group flex overflow-hidden sm:block rounded-3xl border border-foodie-line bg-white/60 transition-shadow hover:shadow-[0_12px_32px_#263c310d] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-foodie-action"
     >
-      <div className="relative aspect-[2/1] overflow-hidden bg-[#eeeadd] sm:aspect-[1.8]">
+      <div className="relative aspect-square w-28 shrink-0 overflow-hidden bg-[#eeeadd] sm:aspect-[1.8] sm:w-auto">
         <FoodImage
-          src={kitchen.imageUrl}
+          src={kitchen.bannerUrl || kitchen.imageUrl}
           alt={`Food from ${kitchen.businessName}`}
           sizes="(max-width: 639px) 90vw, (max-width: 1023px) 45vw, 390px"
         />
@@ -33,9 +33,9 @@ export default function KitchenCard({
           <ArrowUpRight size={18} aria-hidden="true" />
         </span>
       </div>
-      <div className="p-4 sm:p-5">
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="text-lg leading-tight font-medium tracking-tight">
+      <div className="min-w-0 flex-1 p-4 sm:p-5">
+        <div className="flex flex-col items-start gap-1 sm:flex-row sm:justify-between sm:gap-3">
+          <h3 className="text-base leading-tight sm:text-lg font-medium tracking-tight">
             {kitchen.businessName}
           </h3>
           <span

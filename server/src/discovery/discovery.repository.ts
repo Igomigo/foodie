@@ -1,3 +1,5 @@
+import { searchPattern } from "../utils/searchPattern";
+import { foodCategoryValues } from "../domain/food-category";
 import { PipelineStage, Types } from "mongoose";
 import { Vendor, VendorModel } from "../domain/vendor.model";
 import { UserModel } from "../domain/user.model";
@@ -11,11 +13,7 @@ export interface DiscoveryKitchen extends Vendor {
   categories: string[];
 }
 
-function literalPattern(text: string) {
-  return new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
-}
-
-function candidateStages(
+export function candidateStages(
   destination: DiscoveryDestination,
   vendorId?: string,
 ): PipelineStage[] {
@@ -67,7 +65,7 @@ function candidateStages(
   ];
 }
 
-function ownerAndMenuStages(query: DiscoveryQuery): PipelineStage[] {
+export function activeOwnerStages(): PipelineStage[] {
   return [
     {
       $lookup: {
@@ -82,6 +80,10 @@ function ownerAndMenuStages(query: DiscoveryQuery): PipelineStage[] {
       },
     },
     { $match: { "owner.0": { $exists: true } } },
+  ];
+}
+function publishedMenuStages(query: DiscoveryQuery): PipelineStage[] {
+  return [
     {
       $lookup: {
         from: MenuItemModel.collection.name,
@@ -91,7 +93,9 @@ function ownerAndMenuStages(query: DiscoveryQuery): PipelineStage[] {
           {
             $match: {
               isPublished: true,
-              ...(query.category ? { category: query.category } : {}),
+              ...(query.category
+                ? { category: { $in: foodCategoryValues(query.category) } }
+                : {}),
             },
           },
           { $project: { name: 1, description: 1, category: 1 } },
@@ -105,9 +109,9 @@ function ownerAndMenuStages(query: DiscoveryQuery): PipelineStage[] {
         ...(query.q
           ? {
               $or: [
-                { businessName: literalPattern(query.q) },
-                { "menu.name": literalPattern(query.q) },
-                { "menu.description": literalPattern(query.q) },
+                { businessName: searchPattern(query.q) },
+                { "menu.name": searchPattern(query.q) },
+                { "menu.description": searchPattern(query.q) },
               ],
             }
           : {}),
@@ -125,7 +129,8 @@ export function findDiscoveryKitchens(
 ) {
   return VendorModel.aggregate<DiscoveryKitchen>([
     ...candidateStages(destination, vendorId),
-    ...ownerAndMenuStages(query),
+    ...activeOwnerStages(),
+    ...publishedMenuStages(query),
     { $set: { sortOpen: acceptingOrdersExpression(now) } },
     ...(query.openOnly ? [{ $match: { sortOpen: true } }] : []),
     {
@@ -144,6 +149,9 @@ export function findDiscoveryKitchens(
         businessName: 1,
         description: 1,
         imageUrl: 1,
+        bannerUrl: 1,
+        logoUrl: 1,
+        menuSections: 1,
         address: 1,
         approvalStatus: 1,
         acceptingOrders: 1,
